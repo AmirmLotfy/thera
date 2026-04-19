@@ -1,0 +1,245 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helpers ---------------------------------------------------------------
+    function isSignedIn() { return request.auth != null; }
+    function isSelf(uid) { return request.auth != null && request.auth.uid == uid; }
+
+    // Role lookup via custom claims first, fall back to users/{uid}.role so
+    // the platform works both for claim-grant admins and seeded ones.
+    function claimRole() {
+      return request.auth != null
+        ? request.auth.token.get('role', null)
+        : null;
+    }
+    function docRole(uid) {
+      return exists(/databases/$(database)/documents/users/$(uid))
+        ? get(/databases/$(database)/documents/users/$(uid)).data.role
+        : null;
+    }
+    function hasRole(role) {
+      return isSignedIn() && (claimRole() == role || docRole(request.auth.uid) == role);
+    }
+    function isAdmin()     { return hasRole('admin'); }
+    function isTherapist() { return hasRole('therapist'); }
+
+    // Safe patient-facing roles only (therapist/admin granted via Admin SDK).
+    function isPatientRole(r) {
+      return r == 'adult' || r == 'parent' || r == 'teen';
+    }
+
+    function allowedUserRoleChange() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])
+        || (resource.data.role == null
+            && isPatientRole(request.resource.data.role));
+    }
+
+    // Only null → "submitted" from applicant; approve/reject is admin/server.
+    function currentTherapistApplicationStatus() {
+      return resource.data.keys().hasAny(['therapistApplicationStatus'])
+        ? resource.data.therapistApplicationStatus
+        : null;
+    }
+
+    function allowedTherapistApplicationStatusChange() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['therapistApplicationStatus'])
+        || (currentTherapistApplicationStatus() == null
+            && request.resource.data.therapistApplicationStatus == 'submitted');
+    }
+
+    // Account status (active/suspended) — Admin SDK / admin API only.
+    function statusFieldUnchangedForSelf() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status']);
+    }
+
+    // Users -----------------------------------------------------------------
+    match /users/{uid} {
+      allow read:   if isSelf(uid) || isAdmin();
+      // First doc: no therapist/admin self-grant; role absent or null or patient role only.
+      allow create: if isSelf(uid)
+        && (!request.resource.data.keys().hasAny(['role'])
+            || request.resource.data.role == null
+            || isPatientRole(request.resource.data.role));
+      // Users may update profile; role only null→adult|parent|teen; therapistApplicationStatus only null→submitted; no client status writes.
+      allow update: if isAdmin()
+        || (isSelf(uid) && allowedUserRoleChange() && allowedTherapistApplicationStatusChange() && statusFieldUnchangedForSelf());
+      allow delete: if isAdmin();
+
+      // FCM tokens subcollection
+      match /fcmTokens/{tokenId} {
+        allow read:  if isSelf(uid) || isAdmin();
+        allow write: if isSelf(uid);
+      }
+    }
+
+    // Parents ---------------------------------------------------------------
+    match /parents/{uid} {
+      allow read, write: if isSelf(uid) || isAdmin();
+    }
+
+    // Children --------------------------------------------------------------
+    match /children/{id} {
+      allow read:   if isSignedIn() && (resource.data.parentUid == request.auth.uid || isAdmin() || isTherapist());
+      allow create: if isSignedIn() && request.resource.data.parentUid == request.auth.uid;
+      allow update, delete: if isSignedIn() && (resource.data.parentUid == request.auth.uid || isAdmin());
+    }
+
+    // Therapists ------------------------------------------------------------
+    match /therapists/{id} {
+      allow read:   if true;
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && resource.data.uid == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    // Therapist applications (pre-approval) ---------------------------------
+    match /therapistApplications/{id} {
+      allow read:   if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      // Applicants may update their own submission while still "submitted"
+      allow update: if isAdmin()
+        || (isSignedIn() && resource.data.uid == request.auth.uid && resource.data.status == 'submitted');
+      allow delete: if isAdmin();
+    }
+
+    // Availability ----------------------------------------------------------
+    match /availabilitySlots/{id} {
+      allow read:   if true;
+      allow create: if isSignedIn() && (isTherapist() || isAdmin());
+      allow update: if isAdmin()
+        || (isSignedIn() && resource.data.therapistId == request.auth.uid);
+      allow delete: if isAdmin()
+        || (isSignedIn() && resource.data.therapistId == request.auth.uid);
+    }
+
+    // Bookings --------------------------------------------------------------
+    match /bookings/{id} {
+      allow read:   if isSignedIn() && (
+        resource.data.patientUid == request.auth.uid ||
+        resource.data.therapistId == request.auth.uid ||
+        isAdmin()
+      );
+      // Creates flow through server routes using Admin SDK (which bypass
+      // rules). We still permit authenticated creates for dev.
+      allow create: if isSignedIn();
+      allow update: if isAdmin()
+        || (isSignedIn() && (resource.data.patientUid == request.auth.uid || resource.data.therapistId == request.auth.uid));
+      allow delete: if isAdmin();
+    }
+
+    // Payments --------------------------------------------------------------
+    match /payments/{id} {
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      // Writes go through Admin SDK on the server — block direct client writes.
+      allow write: if isAdmin();
+    }
+
+    // Sessions --------------------------------------------------------------
+    match /sessions/{id} {
+      allow read:   if isSignedIn() && (
+        resource.data.patientUid == request.auth.uid ||
+        resource.data.therapistId == request.auth.uid ||
+        isAdmin()
+      );
+      allow write:  if isAdmin()
+        || (isSignedIn() && resource.data.therapistId == request.auth.uid);
+    }
+
+    // Reports ---------------------------------------------------------------
+    match /reports/{id} {
+      allow read: if isSignedIn() && (
+        resource.data.patientUid == request.auth.uid ||
+        resource.data.therapistId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create, update: if isAdmin()
+        || (isSignedIn() && request.resource.data.therapistId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    // Mood logs -------------------------------------------------------------
+    match /moodLogs/{id} {
+      allow read:   if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // Achievements ----------------------------------------------------------
+    match /users/{uid}/achievements/{id} {
+      allow read:   if isSelf(uid) || isAdmin();
+      allow write:  if isAdmin() || isSelf(uid);
+    }
+
+    // Notifications ---------------------------------------------------------
+    match /notifications/{id} {
+      allow read, update: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow create, delete: if isAdmin();
+    }
+
+    // AI conversations + messages ------------------------------------------
+    match /aiConversations/{id} {
+      allow read:   if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+
+      match /messages/{msgId} {
+        allow read: if isSignedIn() && get(/databases/$(database)/documents/aiConversations/$(id)).data.uid == request.auth.uid;
+        allow create: if isSignedIn()
+          && request.resource.data.uid == request.auth.uid
+          && get(/databases/$(database)/documents/aiConversations/$(id)).data.uid == request.auth.uid;
+        // Messages are append-only.
+        allow update, delete: if isAdmin();
+      }
+    }
+
+    // Articles + categories (public content, admin-managed) -----------------
+    match /articles/{id} {
+      allow read:  if true;
+      allow write: if isAdmin();
+    }
+    match /categories/{id} {
+      allow read:  if true;
+      allow write: if isAdmin();
+    }
+
+    // Admin logs ------------------------------------------------------------
+    match /adminLogs/{id} {
+      allow read:  if isAdmin();
+      // Writes go through Admin SDK (server). Block client writes entirely.
+      allow write: if false;
+    }
+
+    // Settings --------------------------------------------------------------
+    match /settings/{id} {
+      allow read:  if true;
+      allow write: if isAdmin();
+    }
+
+    // Site config (admin-managed global config) ----------------------------
+    match /config/{id} {
+      allow read:  if true;
+      allow write: if isAdmin();
+    }
+
+    // Payment proofs (therapist + admin verification queue) ----------------
+    match /paymentProofs/{id} {
+      // Patient can read their own; therapist can read proofs for their bookings; admin sees all
+      allow read:   if isSignedIn() && (
+        resource.data.patientUid == request.auth.uid ||
+        resource.data.uid == request.auth.uid ||
+        resource.data.therapistId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      // Therapist or admin may update (approve/reject) — actual writes go through Admin SDK
+      allow update: if isAdmin() || (isTherapist() && resource.data.therapistId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    // Default deny ----------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

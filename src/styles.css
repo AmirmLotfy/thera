@@ -1,0 +1,325 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Editorial Latin display + distinctive Arabic display, with calm body stacks */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Zain:wght@400;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap");
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 16px);
+  --radius-4xl: calc(var(--radius) + 28px);
+
+  --font-display: var(--font-display-stack);
+  --font-sans: var(--font-body-stack);
+  --font-arabic-display: "Zain", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-arabic: "Tajawal", "IBM Plex Sans Arabic", system-ui, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+
+  --color-lavender: var(--lavender);
+  --color-blush: var(--blush);
+  --color-sky: var(--sky);
+  --color-mint: var(--mint);
+  --color-cream: var(--cream);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  /* legacy alias kept so existing "bg-aqua/*" utilities still render */
+  --color-aqua: var(--sky);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 1.25rem;
+
+  /* Thera 2026 brand — baby blue is the primary accent; lavender is the soft support.
+     Token names preserved for zero-risk migration: the values are swapped (hue), not renamed. */
+  --lavender: oklch(0.905 0.055 240);  /* #BDE0FE Powder Blue (now the "primary" brand accent) */
+  --blush:    oklch(0.89 0.045 3);     /* #F7D6E0 Mist Pink */
+  --sky:      oklch(0.815 0.065 312);  /* #CDB4DB Soft Lavender (now the "supporting" accent) */
+  --mint:     oklch(0.91 0.062 145);   /* #CDEAC0 Mint Calm */
+  --cream:    oklch(0.98 0.025 88);    /* #FFF6E9 Warm Cream */
+  --ink:      oklch(0.23 0.045 295);   /* #1F1B2E Deep plum-ink */
+  --ink-muted: oklch(0.46 0.018 270);  /* #4B5563 Deep Text Gray */
+
+  --background: var(--cream);
+  --foreground: var(--ink);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--ink);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--cream);
+  --secondary: var(--lavender);
+  --secondary-foreground: var(--ink);
+  --muted: oklch(0.96 0.012 80);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--blush);
+  --accent-foreground: var(--ink);
+  --destructive: oklch(0.62 0.2 25);
+  --destructive-foreground: var(--cream);
+  --border: oklch(0.9 0.012 290);
+  --input: oklch(0.93 0.01 290);
+  --ring: var(--lavender);
+
+  --chart-1: var(--lavender);
+  --chart-2: var(--sky);
+  --chart-3: var(--blush);
+  --chart-4: var(--mint);
+  --chart-5: oklch(0.8 0.115 60);
+
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--ink);
+  --sidebar-primary-foreground: var(--cream);
+  --sidebar-accent: var(--lavender);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: oklch(0.9 0.012 290);
+  --sidebar-ring: var(--lavender);
+
+  /* Fixed headers — keep in sync with SiteHeader.tsx (h-14 / h-16) & DashboardHeader.tsx (h-14) */
+  --thera-site-header-h: 3.5rem; /* 56px · MobileHeader */
+  --thera-site-header-h-lg: 4rem; /* 64px · desktop bar */
+  --thera-hero-gap-sm: 1.25rem; /* breathing room below bar · mobile */
+  --thera-hero-gap-lg: 2rem; /* ~matches previous md:pt-24 feel on large screens */
+
+  /* Latin editorial stack. Arabic-aware stacks swap via [lang]/[dir] selectors below. */
+  --font-display-stack: "Fraunces", "Zain", "IBM Plex Sans Arabic", ui-serif, Georgia, serif;
+  --font-body-stack: "Plus Jakarta Sans", "Tajawal", "IBM Plex Sans Arabic", system-ui, sans-serif;
+}
+
+html[lang="ar"],
+html[dir="rtl"] {
+  --font-display-stack: "Zain", "Tajawal", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-body-stack: "Tajawal", "IBM Plex Sans Arabic", system-ui, sans-serif;
+}
+
+/* Calm dark variant — desaturated plum + sage, not "black SaaS" */
+.dark {
+  --background: oklch(0.2 0.035 295);
+  --foreground: oklch(0.96 0.015 85);
+  --card: oklch(0.26 0.04 295);
+  --card-foreground: var(--foreground);
+  --popover: oklch(0.26 0.04 295);
+  --popover-foreground: var(--foreground);
+  --primary: var(--cream);
+  --primary-foreground: oklch(0.2 0.035 295);
+  --secondary: oklch(0.36 0.06 300);
+  --secondary-foreground: var(--cream);
+  --muted: oklch(0.28 0.03 295);
+  --muted-foreground: oklch(0.78 0.02 290);
+  --accent: oklch(0.4 0.07 345);
+  --accent-foreground: var(--cream);
+  --destructive: oklch(0.68 0.17 22);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: var(--lavender);
+
+  --lavender: oklch(0.78 0.075 235);
+  --blush:    oklch(0.76 0.07 5);
+  --sky:      oklch(0.74 0.09 315);
+  --mint:     oklch(0.78 0.08 150);
+  --cream:    oklch(0.96 0.015 85);
+
+  --sidebar: oklch(0.24 0.04 295);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-accent: oklch(0.36 0.06 300);
+  --sidebar-accent-foreground: var(--cream);
+  --sidebar-border: oklch(1 0 0 / 10%);
+}
+
+@layer base {
+  * { border-color: var(--color-border); }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.018em;
+  }
+
+  /* Arabic typography — optical-size bump, neutral tracking, generous line-height */
+  html[dir="rtl"],
+  html[dir="rtl"] body {
+    font-family: var(--font-arabic);
+    letter-spacing: 0;
+    line-height: 1.7;
+  }
+  html[dir="rtl"] h1,
+  html[dir="rtl"] h2,
+  html[dir="rtl"] h3,
+  html[dir="rtl"] h4,
+  html[dir="rtl"] .font-display {
+    font-family: var(--font-arabic-display);
+    letter-spacing: 0;
+    line-height: 1.15;
+  }
+
+  /* Focus ring — accessible even on pastel surfaces */
+  :where(button, a, input, select, textarea, [role="button"], [tabindex]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: calc(var(--radius) - 6px);
+  }
+
+  /* Reduced motion — honor user preference everywhere */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Subtle paper grain — unobtrusive in dark mode */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.035;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.6'/></svg>");
+  }
+  .dark body::before {
+    opacity: 0.06;
+    mix-blend-mode: screen;
+  }
+
+  /* Print basics */
+  @media print {
+    body::before { display: none; }
+    header, footer, nav, .no-print { display: none !important; }
+  }
+}
+
+@layer utilities {
+  .blob {
+    border-radius: 42% 58% 63% 37% / 47% 42% 58% 53%;
+    filter: blur(40px);
+  }
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
+
+  /* Soft elevated cards (pastel-safe shadow) */
+  .shadow-soft {
+    box-shadow: 0 30px 80px -40px rgba(31, 27, 46, 0.28), 0 2px 10px -4px rgba(31, 27, 46, 0.08);
+  }
+  .shadow-soft-lg {
+    box-shadow: 0 60px 140px -50px rgba(31, 27, 46, 0.35), 0 6px 20px -6px rgba(31, 27, 46, 0.1);
+  }
+
+  /* Tonal glass panel */
+  .glass {
+    background: color-mix(in oklch, var(--card) 80%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* Breathing animation for meditation / pomodoro circles */
+  @keyframes thera-breathe {
+    0%, 100% { transform: scale(1); opacity: 0.85; }
+    50% { transform: scale(1.08); opacity: 1; }
+  }
+  .animate-breathe { animation: thera-breathe 7s ease-in-out infinite; }
+
+  @keyframes thera-drift {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+    50% { transform: translate3d(1.5%, -2%, 0) rotate(1.5deg); }
+  }
+  .animate-drift { animation: thera-drift 14s ease-in-out infinite; }
+
+  @keyframes thera-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent, color-mix(in oklch, var(--foreground) 8%, transparent), transparent);
+    background-size: 200% 100%;
+    animation: thera-shimmer 2s linear infinite;
+  }
+
+  /* Conic gradient chip for mood ring */
+  .bg-mood-ring {
+    background: conic-gradient(from 140deg,
+      var(--lavender),
+      var(--blush),
+      var(--mint),
+      var(--sky),
+      var(--lavender));
+  }
+
+  /* Hero clears fixed marketing header (transparent over hero) + safe-area inset */
+  .pt-hero-under-site-header {
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--thera-site-header-h) + var(--thera-hero-gap-sm));
+  }
+  @media (min-width: 1024px) {
+    .pt-hero-under-site-header {
+      padding-top: calc(env(safe-area-inset-top, 0px) + var(--thera-site-header-h-lg) + var(--thera-hero-gap-lg));
+    }
+  }
+
+  /* Logical side helpers (work alongside Tailwind's ms-/me- utilities) */
+  .border-is { border-inline-start-width: 1px; }
+  .border-ie { border-inline-end-width: 1px; }
+
+  /* Generic form input used across admin panels & settings */
+  .input {
+    width: 100%;
+    padding: 0.5rem 0.85rem;
+    border-radius: calc(var(--radius) - 6px);
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--foreground);
+    font-size: 0.875rem;
+  }
+  .input:focus { outline: 2px solid var(--ring); outline-offset: 2px; }
+  textarea.input { line-height: 1.55; resize: vertical; }
+}
