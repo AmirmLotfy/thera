@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFF6E9"/>
+      <stop offset="1" stop-color="#f0eefd"/>
+    </linearGradient>
+    <radialGradient id="b1" cx="0.15" cy="0.2" r="0.5">
+      <stop offset="0" stop-color="#5EC4B6" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#5EC4B6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="b2" cx="0.9" cy="0.85" r="0.55">
+      <stop offset="0" stop-color="#7B6CF6" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#7B6CF6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#b1)"/>
+  <rect width="1200" height="630" fill="url(#b2)"/>
+
+  <!-- Logo mark: two overlapping speech bubbles (teal + purple) -->
+  <!-- Teal bubble (left) -->
+  <g transform="translate(90, 115)">
+    <path d="
+      M0,60 C0,26.9 26.9,0 60,0
+      L140,0 C173.1,0 200,26.9 200,60
+      C200,93.1 173.1,120 140,120
+      L90,120 L70,148 L68,120
+      L60,120 C26.9,120 0,93.1 0,60Z
+    " fill="#5EC4B6"/>
+    <!-- Inner circle cutout (white) -->
+    <circle cx="100" cy="56" r="36" fill="white"/>
+  </g>
+
+  <!-- Purple bubble (right, overlapping) -->
+  <g transform="translate(190, 115)">
+    <path d="
+      M0,60 C0,26.9 26.9,0 60,0
+      L140,0 C173.1,0 200,26.9 200,60
+      C200,93.1 173.1,120 140,120
+      L132,120 L130,148 L110,120
+      L60,120 C26.9,120 0,93.1 0,60Z
+    " fill="#7B6CF6"/>
+    <!-- Inner circle cutout (white) -->
+    <circle cx="100" cy="56" r="36" fill="white"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="90" y="360" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="108" fill="#1F1B2E" letter-spacing="-2">Thera</text>
+
+  <!-- Tagline EN -->
+  <text x="90" y="430" font-family="Georgia, serif" font-style="italic" font-weight="400" font-size="46" fill="#1F1B2E" opacity="0.75">A safe space for mental wellness.</text>
+
+  <!-- Sub-line -->
+  <text x="90" y="495" font-family="system-ui, -apple-system, sans-serif" font-weight="400" font-size="26" fill="#6B7280">Bilingual AI companion · Vetted therapists · EN · العربية</text>
+
+  <!-- Brand dots -->
+  <circle cx="90"  cy="552" r="6" fill="#5EC4B6"/>
+  <circle cx="112" cy="552" r="6" fill="#7B6CF6"/>
+  <circle cx="134" cy="552" r="6" fill="#F9A8D4"/>
+</svg>

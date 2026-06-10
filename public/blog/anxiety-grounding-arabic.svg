@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-label="Grounding and calm illustration">
+  <defs>
+    <linearGradient id="aga-bg" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#CDEAC0"/>
+      <stop offset="45%" stop-color="#E8F4FC"/>
+      <stop offset="100%" stop-color="#CDB4DB"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#aga-bg)"/>
+  <ellipse cx="600" cy="340" rx="280" ry="200" fill="#FFF6E9" opacity="0.7"/>
+  <g transform="translate(420,160)">
+    <circle cx="180" cy="180" r="160" fill="none" stroke="#1F1B2E" stroke-width="2" opacity="0.15"/>
+    <circle cx="180" cy="180" r="120" fill="none" stroke="#BDE0FE" stroke-width="3" opacity="0.6"/>
+    <circle cx="180" cy="180" r="80" fill="#F7D6E0" stroke="#1F1B2E" stroke-width="2.5"/>
+    <path d="M120 200 Q180 240 240 200" fill="none" stroke="#1F1B2E" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M180 100 L180 130 M180 230 L180 260 M100 180 L130 180 M230 180 L260 180" stroke="#CDEAC0" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(200,420)">
+    <path d="M0 40 C40 0 80 0 120 40 C160 80 200 80 240 40" fill="none" stroke="#1F1B2E" stroke-width="2" opacity="0.2"/>
+    <ellipse cx="60" cy="20" rx="28" ry="40" fill="#CDEAC0" stroke="#1F1B2E" stroke-width="2" transform="rotate(-15 60 20)"/>
+    <ellipse cx="180" cy="25" rx="32" ry="45" fill="#BDE0FE" stroke="#1F1B2E" stroke-width="2" transform="rotate(10 180 25)"/>
+  </g>
+  <g transform="translate(860,100)">
+    <rect width="120" height="120" rx="30" fill="#FFF6E9" stroke="#1F1B2E" stroke-width="2"/>
+    <text x="60" y="72" text-anchor="middle" font-family="system-ui,sans-serif" font-size="48" fill="#1F1B2E">?</text>
+    <text x="60" y="105" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" fill="#1F1B2E" opacity="0.5">?????</text>
+  </g>
+  <text x="80" y="88" font-family="system-ui,sans-serif" font-size="22" font-weight="600" fill="#1F1B2E" opacity="0.55">Thera � Self-care</text>
+</svg>

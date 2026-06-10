@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-label="When to see a therapist illustration">
+  <defs>
+    <linearGradient id="wst-bg" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#F7D6E0"/>
+      <stop offset="50%" stop-color="#FFF6E9"/>
+      <stop offset="100%" stop-color="#CDB4DB"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#wst-bg)"/>
+  <circle cx="200" cy="150" r="120" fill="#CDEAC0" opacity="0.55"/>
+  <circle cx="980" cy="520" r="160" fill="#BDE0FE" opacity="0.4"/>
+  <g transform="translate(380,120)">
+    <rect x="0" y="0" width="440" height="440" rx="48" fill="#FFF6E9" stroke="#1F1B2E" stroke-width="3"/>
+    <path d="M220 80 C160 80 120 130 120 190 C120 280 220 340 220 340 C220 340 320 280 320 190 C320 130 280 80 220 80Z" fill="#F7D6E0" stroke="#1F1B2E" stroke-width="2.5"/>
+    <circle cx="220" cy="175" r="48" fill="#CDB4DB" stroke="#1F1B2E" stroke-width="2.5"/>
+    <path d="M200 175 Q220 195 240 175" fill="none" stroke="#1F1B2E" stroke-width="2.5" stroke-linecap="round"/>
+    <rect x="100" y="360" width="240" height="16" rx="8" fill="#BDE0FE"/>
+    <rect x="140" y="390" width="160" height="12" rx="6" fill="#1F1B2E" opacity="0.1"/>
+  </g>
+  <g transform="translate(120,320)">
+    <rect width="200" height="56" rx="28" fill="#CDEAC0" stroke="#1F1B2E" stroke-width="2"/>
+    <text x="100" y="36" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18" font-weight="600" fill="#1F1B2E">You matter</text>
+  </g>
+  <g transform="translate(880,180)">
+    <rect width="72" height="72" rx="18" fill="#BDE0FE" stroke="#1F1B2E" stroke-width="2"/>
+    <path d="M24 48 L36 24 L48 48" fill="none" stroke="#1F1B2E" stroke-width="2.5" stroke-linejoin="round"/>
+  </g>
+  <text x="80" y="88" font-family="system-ui,sans-serif" font-size="22" font-weight="600" fill="#1F1B2E" opacity="0.55">Thera � Awareness</text>
+</svg>

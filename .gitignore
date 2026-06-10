@@ -1,0 +1,15 @@
+.vercel
+.cursor/
+.env*.local
+.env
+node_modules/
+dist/
+.turbo
+*.log
+.DS_Store
+.idea
+.vscode
+firebase-debug.log
+firebase-debug.*.log
+functions/node_modules/
+functions/lib/

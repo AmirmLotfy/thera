@@ -1,0 +1,15 @@
+{
+  "name": "Thera · ثيرا",
+  "short_name": "Thera",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFF6E9",
+  "theme_color": "#FFF6E9",
+  "description": "Bilingual mental wellness — therapy discovery, AI guidance, teen Vibe.",
+  "icons": [
+    { "src": "/favicon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ],
+  "lang": "en"
+}
