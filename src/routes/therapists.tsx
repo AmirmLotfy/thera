@@ -1,36 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { SiteShell } from "@/components/site/SiteShell";
-import { TherapistsDirectory, therapistsSearchSchema, type TherapistsSearch } from "@/components/therapists/TherapistsDirectory";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
+/** Layout for /therapists — index (therapists.index) + details (therapists.$id) render via Outlet */
 export const Route = createFileRoute("/therapists")({
-  head: () => ({
-    meta: [
-      { title: "Find a therapist — Thera" },
-      { name: "description", content: "Browse vetted bilingual therapists by specialty, language, price and format." },
-      { property: "og:title", content: "Find a therapist — Thera" },
-      { property: "og:description", content: "Vetted EN/AR specialists, ready to listen." },
-    ],
-  }),
-  validateSearch: (search) => therapistsSearchSchema.parse(search),
-  component: PublicTherapistsPage,
+  component: () => <Outlet />,
 });
-
-function PublicTherapistsPage() {
-  const search = Route.useSearch() as TherapistsSearch;
-  const navigate = Route.useNavigate();
-  return (
-    <SiteShell>
-      <TherapistsDirectory
-        search={search}
-        setSearch={(patch) => {
-          if (Object.keys(patch).length === 0) {
-            void navigate({ search: {}, replace: true });
-            return;
-          }
-          void navigate({ search: { ...search, ...patch }, replace: true });
-        }}
-        variant="marketing"
-      />
-    </SiteShell>
-  );
-}

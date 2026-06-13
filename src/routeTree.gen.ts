@@ -23,6 +23,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as R500RouteImport } from './routes/500'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TherapistsIndexRouteImport } from './routes/therapists.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as TherapistsIdRouteImport } from './routes/therapists.$id'
 import { Route as SettingsSecurityRouteImport } from './routes/settings.security'
@@ -154,6 +155,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const TherapistsIndexRoute = TherapistsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TherapistsRoute,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/',
@@ -498,6 +504,7 @@ export interface FileRoutesByFullPath {
   '/settings/security': typeof SettingsSecurityRoute
   '/therapists/$id': typeof TherapistsIdRoute
   '/blog/': typeof BlogIndexRoute
+  '/therapists/': typeof TherapistsIndexRoute
   '/api/admin/approve-therapist': typeof ApiAdminApproveTherapistRoute
   '/api/ai/chat': typeof ApiAiChatRoute
   '/api/ai/crisis-check': typeof ApiAiCrisisCheckRoute
@@ -556,7 +563,6 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
-  '/therapists': typeof TherapistsRouteWithChildren
   '/auth/action': typeof AuthActionRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/login': typeof AuthLoginRoute
@@ -573,6 +579,7 @@ export interface FileRoutesByTo {
   '/settings/security': typeof SettingsSecurityRoute
   '/therapists/$id': typeof TherapistsIdRoute
   '/blog': typeof BlogIndexRoute
+  '/therapists': typeof TherapistsIndexRoute
   '/api/admin/approve-therapist': typeof ApiAdminApproveTherapistRoute
   '/api/ai/chat': typeof ApiAiChatRoute
   '/api/ai/crisis-check': typeof ApiAiCrisisCheckRoute
@@ -651,6 +658,7 @@ export interface FileRoutesById {
   '/settings/security': typeof SettingsSecurityRoute
   '/therapists/$id': typeof TherapistsIdRoute
   '/blog/': typeof BlogIndexRoute
+  '/therapists/': typeof TherapistsIndexRoute
   '/api/admin/approve-therapist': typeof ApiAdminApproveTherapistRoute
   '/api/ai/chat': typeof ApiAiChatRoute
   '/api/ai/crisis-check': typeof ApiAiCrisisCheckRoute
@@ -730,6 +738,7 @@ export interface FileRouteTypes {
     | '/settings/security'
     | '/therapists/$id'
     | '/blog/'
+    | '/therapists/'
     | '/api/admin/approve-therapist'
     | '/api/ai/chat'
     | '/api/ai/crisis-check'
@@ -788,7 +797,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/terms'
-    | '/therapists'
     | '/auth/action'
     | '/auth/forgot'
     | '/auth/login'
@@ -805,6 +813,7 @@ export interface FileRouteTypes {
     | '/settings/security'
     | '/therapists/$id'
     | '/blog'
+    | '/therapists'
     | '/api/admin/approve-therapist'
     | '/api/ai/chat'
     | '/api/ai/crisis-check'
@@ -882,6 +891,7 @@ export interface FileRouteTypes {
     | '/settings/security'
     | '/therapists/$id'
     | '/blog/'
+    | '/therapists/'
     | '/api/admin/approve-therapist'
     | '/api/ai/chat'
     | '/api/ai/crisis-check'
@@ -1076,6 +1086,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/therapists/': {
+      id: '/therapists/'
+      path: '/'
+      fullPath: '/therapists/'
+      preLoaderRoute: typeof TherapistsIndexRouteImport
+      parentRoute: typeof TherapistsRoute
     }
     '/blog/': {
       id: '/blog/'
@@ -1543,10 +1560,12 @@ const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
 
 interface TherapistsRouteChildren {
   TherapistsIdRoute: typeof TherapistsIdRoute
+  TherapistsIndexRoute: typeof TherapistsIndexRoute
 }
 
 const TherapistsRouteChildren: TherapistsRouteChildren = {
   TherapistsIdRoute: TherapistsIdRoute,
+  TherapistsIndexRoute: TherapistsIndexRoute,
 }
 
 const TherapistsRouteWithChildren = TherapistsRoute._addFileChildren(

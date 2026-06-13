@@ -99,7 +99,12 @@ export function useTherapistSlots(therapistId: string | undefined | null, lookah
 /** Real-time open slots for booking UI. */
 export function useTherapistSlotsLive(therapistId: string | undefined | null, lookaheadDays = 14) {
   const demo = therapistId ? demoSlotsFor(therapistId) : [];
-  const minStartsAt = new Date().toISOString();
+  // Round to start of the current hour to prevent queryKey from changing on every single render.
+  // This completely resolves the infinite reloading / flashing loop on the book route.
+  const now = new Date();
+  now.setMinutes(0, 0, 0, 0);
+  const minStartsAt = now.toISOString();
+
   const live = useFirestoreLive<AvailabilitySlot>({
     queryKey: ["therapistSlotsLive", therapistId, lookaheadDays, minStartsAt],
     pathSegments: ["availabilitySlots"],

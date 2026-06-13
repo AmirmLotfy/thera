@@ -498,11 +498,15 @@ function TherapistCard({
 
       {/* Footer buttons row */}
       <div className="relative z-10 flex gap-2 border-t border-border/30 bg-card/30 p-3.5 backdrop-blur-sm">
-        {/* Mock profile button with pointer-events-none so clicks fall through to the main card overlay */}
-        <div className="inline-flex flex-1 items-center justify-center gap-1 rounded-xl border border-border/60 bg-card px-3 py-2 text-xs font-semibold text-ink pointer-events-none">
+        {/* Native interactive Link for View Profile to ensure it is always clickable and accessible */}
+        <Link
+          to="/therapists/$id"
+          params={{ id: t.id }}
+          className="inline-flex flex-1 items-center justify-center gap-1 rounded-xl border border-border/60 bg-card px-3 py-2 text-xs font-semibold text-ink hover:bg-muted/30 transition-colors"
+        >
           {tr.therapists.viewProfile}
           <ArrowUpRight className="h-3 w-3 rtl:rotate-180" />
-        </div>
+        </Link>
         {/* Interactive booking button (stops bubbling or is relative z-10) */}
         <BookTherapistLink
           therapistId={t.id}
