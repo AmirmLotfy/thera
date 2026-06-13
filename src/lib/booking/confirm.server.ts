@@ -148,6 +148,12 @@ export async function confirmBookingPayment(
       bookingId,
       createdAt: now,
     });
+    tx.set(db.collection("adminLogs").doc(), {
+      kind: "system",
+      payload: { action: "booking_payment_confirmed", bookingId, by: uid, provider },
+      at: now,
+      createdAt: now,
+    });
   });
 
   await upsertCareThread(db, {

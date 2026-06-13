@@ -10,7 +10,7 @@ import { DEMO_THERAPISTS } from "@/lib/demo/therapists";
 import type { TherapistInstapay } from "@/lib/types";
 import { QRCodeSVG } from "qrcode.react";
 import * as React from "react";
-import { Banknote, ShieldCheck, Loader2, Check, Copy, ExternalLink } from "lucide-react";
+import { Banknote, ShieldCheck, Loader2, Check, Copy, ExternalLink, CreditCard } from "lucide-react";
 import { formatPrice } from "@/lib/money";
 
 export const Route = createFileRoute("/checkout/$bookingId")({
@@ -39,6 +39,23 @@ function CheckoutPage() {
   const { bookingId } = Route.useParams();
   const [summary, setSummary] = React.useState<BookingSummary | null>(null);
   const [lockRemainingSec, setLockRemainingSec] = React.useState<number | null>(null);
+  const [paymentMethod, setPaymentMethod] = React.useState<"instapay" | "card">("instapay");
+  const [polarEnabled, setPolarEnabled] = React.useState(false);
+
+  React.useEffect(() => {
+    async function checkPolar() {
+      try {
+        const res = await fetch("/api/polar/checkout");
+        if (res.ok) {
+          const data = await res.json();
+          setPolarEnabled(!!data.enabled);
+        }
+      } catch {
+        // ignore
+      }
+    }
+    void checkPolar();
+  }, []);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -137,18 +154,55 @@ function CheckoutPage() {
               : "Pay via InstaPay, then upload your transfer screenshot. Your therapist will verify and confirm your booking."}
           </p>
 
-          <div className="mt-6 flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 text-sm font-semibold">
-            <Banknote className="h-4 w-4" />
-            {locale === "ar" ? "الدفع عبر InstaPay" : "Pay with InstaPay"}
+          {/* Payment Method Selector Tabs */}
+          <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl bg-muted/40 p-1">
+            <button
+              type="button"
+              onClick={() => setPaymentMethod("instapay")}
+              className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all ${
+                paymentMethod === "instapay"
+                  ? "bg-card text-ink shadow-sm"
+                  : "text-ink-muted hover:text-ink hover:bg-card/40"
+              }`}
+            >
+              <Banknote className="h-4 w-4" />
+              {locale === "ar" ? "InstaPay" : "InstaPay"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod("card")}
+              className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all ${
+                paymentMethod === "card"
+                  ? "bg-card text-ink shadow-sm"
+                  : "text-ink-muted hover:text-ink hover:bg-card/40"
+              }`}
+            >
+              <CreditCard className="h-4 w-4" />
+              {locale === "ar" ? "بطاقة ائتمان" : "Card"}
+              {!polarEnabled && (
+                <span className="rounded-full bg-blush/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-destructive">
+                  {locale === "ar" ? "قريباً" : "Soon"}
+                </span>
+              )}
+            </button>
           </div>
 
           <div className="mt-6 rounded-3xl border border-border/70 bg-card p-6 shadow-soft">
-            <InstaPayPanel bookingId={bookingId} instapay={summary?.instapay} />
+            {paymentMethod === "instapay" ? (
+              <InstaPayPanel bookingId={bookingId} instapay={summary?.instapay} />
+            ) : (
+              <CardPaymentPanel
+                bookingId={bookingId}
+                enabled={polarEnabled}
+                amount={summary?.amount}
+                currency={summary?.currency}
+              />
+            )}
           </div>
 
           <div className="mt-4 flex items-center gap-2 text-xs text-ink-muted">
             <ShieldCheck className="h-4 w-4" />
-            {locale === "ar" ? "الدفع بالبطاقة قريبًا — InstaPay متاح الآن." : "Card payments coming soon — InstaPay is available now."}
+            {locale === "ar" ? "معاملات آمنة ومشفرة بالكامل." : "Secure and encrypted transactions."}
           </div>
         </div>
 
@@ -231,7 +285,12 @@ function InstaPayPanel({
         body: JSON.stringify({ bookingId, fileUrl, reference }),
       });
       if (!res.ok) throw new Error(await res.text());
-      setDone(true);
+      const data = await res.json();
+      if (data.confirmed) {
+        window.location.assign(`/checkout/success?bookingId=${bookingId}`);
+      } else {
+        setDone(true);
+      }
     } catch (err) {
       console.error("instapay proof", err);
       alert(locale === "ar" ? "تعذّر رفع الإثبات. يرجى إعادة المحاولة." : "Could not submit proof. Please retry.");
@@ -331,6 +390,99 @@ function Row({ label, value, bold }: { label: string; value: string; bold?: bool
   return (
     <div className={`flex justify-between ${bold ? "font-display text-lg" : "text-ink-muted"}`}>
       <span>{label}</span><span className={bold ? "text-foreground" : "text-foreground"}>{value}</span>
+    </div>
+  );
+}
+
+function CardPaymentPanel({
+  bookingId,
+  enabled,
+  amount,
+  currency,
+}: {
+  bookingId: string;
+  enabled: boolean;
+  amount?: number;
+  currency?: "EGP" | "USD" | "SAR" | "AED";
+}) {
+  const { locale } = useI18n();
+  const { user } = useAuth();
+  const [submitting, setSubmitting] = React.useState(false);
+
+  async function handleCardPay() {
+    if (!user) {
+      alert(locale === "ar" ? "يرجى تسجيل الدخول أولاً." : "Please sign in first.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const idToken = await user.getIdToken();
+      const res = await fetch("/api/polar/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({ bookingId }),
+      });
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        window.location.assign(data.checkoutUrl);
+      } else {
+        throw new Error("No checkout URL returned");
+      }
+    } catch (err) {
+      console.error("card pay", err);
+      alert(locale === "ar" ? "تعذّر إعداد الدفع بالبطاقة. يرجى استخدام InstaPay." : "Could not initialize card payment. Please use InstaPay.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (!enabled) {
+    return (
+      <div className="space-y-4 text-center py-6 text-sm">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blush/20 text-blush">
+          <CreditCard className="h-6 w-6" />
+        </div>
+        <div>
+          <p className="font-semibold text-ink">{locale === "ar" ? "الدفع بالبطاقة غير متاح حاليًا" : "Card payments coming soon"}</p>
+          <p className="text-xs text-ink-muted mt-1 max-w-sm mx-auto">
+            {locale === "ar" 
+              ? "نعمل على تفعيل الدفع بالبطاقات الائتمانية. يرجى الدفع عبر InstaPay في الوقت الحالي." 
+              : "We are currently setting up credit/debit card payments. Please use InstaPay to complete your booking."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5 text-sm">
+      <p className="rounded-2xl border border-sky/50 bg-sky/25 px-4 py-3 text-ink-muted">
+        {locale === "ar"
+          ? "ادفع بأمان باستخدام أي بطاقة ائتمانية أو بطاقة خصم مباشر عبر بوابة الدفع Polar."
+          : "Pay securely with any credit or debit card powered by Polar payment gateway."}
+      </p>
+
+      <button
+        type="button"
+        disabled={submitting}
+        onClick={handleCardPay}
+        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-ink px-5 py-4 text-base font-semibold text-cream shadow-soft hover:bg-ink-muted active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+      >
+        {submitting ? (
+          <>
+            <Loader2 className="h-5 w-5 animate-spin" />
+            {locale === "ar" ? "جاري التوجيه إلى بوابة الدفع..." : "Redirecting to checkout..."}
+          </>
+        ) : (
+          <>
+            <CreditCard className="h-5 w-5" />
+            {locale === "ar" ? "ادفع بالبطاقة الآن" : "Pay securely by Card"}
+          </>
+        )}
+      </button>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { SiteShell } from "@/components/site/SiteShell";
 import { useI18n } from "@/i18n/I18nProvider";
 import { useAuth } from "@/lib/auth";
 import { db, isFirebaseConfigured, storage } from "@/lib/firebase";
-import { doc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, updateDoc, serverTimestamp, addDoc, collection } from "firebase/firestore";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Check, Upload, Loader2, X } from "lucide-react";
 import * as React from "react";
@@ -150,6 +150,19 @@ function OnboardingPage() {
       if (step2.note) userData.onboardingNote = step2.note;
 
       if (canWrite) {
+        if (role === "parent" && parentStep1.childName) {
+          const approxDob = `${new Date().getFullYear() - (Number(parentStep1.childAge) || 8)}-01-01`;
+          const childRef = await addDoc(collection(db!, "children"), {
+            parentUid: uid,
+            name: parentStep1.childName,
+            dob: approxDob,
+            notes: parentStep1.childTags.join(", "),
+            createdAt: serverTimestamp(),
+          });
+          userData.childrenIds = [childRef.id];
+          userData.childId = childRef.id;
+        }
+
         await updateDoc(doc(db!, "users", uid), userData);
 
         if (role === "therapist") {

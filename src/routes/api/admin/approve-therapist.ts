@@ -12,7 +12,7 @@ import {
 
 type Body = {
   applicationId: string;
-  decision: "approve" | "reject";
+  decision: "approve" | "reject" | "review";
   reason?: string;
 };
 
@@ -37,6 +37,21 @@ export const Route = createFileRoute("/api/admin/approve-therapist")({
         if (!snap.exists) return new Response("Application not found", { status: 404 });
         const app = snap.data()!;
         const now = Timestamp.now();
+
+        if (body.decision === "review") {
+          const userRef = db.collection("users").doc(app.uid);
+          await db.runTransaction(async (tx) => {
+            tx.update(appRef, { status: "under_review", reviewedAt: now });
+            tx.update(userRef, { therapistApplicationStatus: "under_review" });
+            tx.set(db.collection("adminLogs").doc(), {
+              kind: "therapist_review_started",
+              uid: decoded.uid,
+              payload: { applicationId: body.applicationId, therapistUid: app.uid },
+              createdAt: now,
+            });
+          });
+          return Response.json({ ok: true, decision: "review" });
+        }
 
         if (body.decision === "reject") {
           const userRef = db.collection("users").doc(app.uid);

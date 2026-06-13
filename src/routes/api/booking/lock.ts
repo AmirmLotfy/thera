@@ -46,12 +46,48 @@ export const Route = createFileRoute("/api/booking/lock")({
           await db.runTransaction(async (tx) => {
             const [slot, therapist] = await Promise.all([tx.get(slotRef), tx.get(therapistRef)]);
             if (!slot.exists) throw new Error("slot-not-found");
-            if (slot.data()?.status !== "open") throw new Error("slot-unavailable");
             if (!therapist.exists || therapist.data()?.approved !== true) throw new Error("therapist-unavailable");
 
             const slotData = slot.data()!;
             const now = Timestamp.now();
-            tx.update(slotRef, { status: "locked", lockedAt: now, lockedBy: uid });
+
+            if (slotData.status !== "open") {
+              const isLocked = slotData.status === "locked";
+              const lockedAt = slotData.lockedAt as Timestamp | undefined;
+              const isExpired = isLocked && lockedAt && (now.toMillis() - lockedAt.toMillis()) > LOCK_MINUTES * 60 * 1000;
+              if (!isExpired) {
+                throw new Error("slot-unavailable");
+              }
+
+              // Reclaiming expired slot! Cancel any existing pending_payment booking linked to this slot
+              if (slotData.bookingId) {
+                const oldBookingRef = db.collection("bookings").doc(slotData.bookingId);
+                const oldBooking = await tx.get(oldBookingRef);
+                if (oldBooking.exists && oldBooking.data()?.status === "pending_payment") {
+                  tx.update(oldBookingRef, {
+                    status: "cancelled",
+                    cancellationReason: "payment_timeout",
+                    updatedAt: now,
+                  });
+                }
+              } else {
+                // Fallback for legacy slots where bookingId was not stored on the slot
+                const oldBookings = await db.collection("bookings")
+                  .where("slotId", "==", slotId)
+                  .where("status", "==", "pending_payment")
+                  .limit(1)
+                  .get();
+                if (!oldBookings.empty) {
+                  tx.update(oldBookings.docs[0].ref, {
+                    status: "cancelled",
+                    cancellationReason: "payment_timeout",
+                    updatedAt: now,
+                  });
+                }
+              }
+            }
+
+            tx.update(slotRef, { status: "locked", lockedAt: now, lockedBy: uid, bookingId: bookingRef.id });
             tx.set(bookingRef, {
               slotId,
               therapistId,

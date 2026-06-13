@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/i18n/I18nProvider";
 import { getDashboardNavItems } from "@/lib/dashboard/nav";
 import type { Role } from "@/lib/auth";
+import { Globe } from "lucide-react";
 
 function titleForPath(role: Role, pathname: string, locale: "en" | "ar"): string {
   const items = getDashboardNavItems(role);
@@ -42,7 +43,14 @@ export function DashboardHeader() {
           </Link>
           <h1 className="truncate font-display text-lg font-semibold tracking-tight md:text-xl">{title}</h1>
         </div>
-        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+          <Link
+            to="/"
+            className="hidden sm:inline-flex h-9 items-center justify-center gap-1.5 rounded-full border border-border/60 bg-card px-3.5 text-xs font-semibold text-ink hover:bg-muted transition-colors"
+          >
+            <Globe className="h-3.5 w-3.5 text-ink-muted" />
+            <span>{locale === "ar" ? "الموقع العام" : "Public Site"}</span>
+          </Link>
           <button
             type="button"
             onClick={() => toggle()}

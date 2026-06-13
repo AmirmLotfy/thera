@@ -357,7 +357,7 @@ export function TherapistsDirectory({ search, setSearch, variant = "marketing" }
 
         <motion.div
           layout
-          className="grid auto-rows-[minmax(260px,auto)] gap-5 sm:grid-cols-2 lg:grid-cols-3"
+          className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
         >
           {therapists.map((therapist, i) => (
             <motion.div
@@ -366,9 +366,8 @@ export function TherapistsDirectory({ search, setSearch, variant = "marketing" }
               initial={reduced ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: Math.min(i * 0.04, 0.3) }}
-              className={i % 5 === 0 ? "md:row-span-2" : ""}
             >
-              <TherapistCard t={therapist} locale={locale} feature={i % 5 === 0} />
+              <TherapistCard t={therapist} locale={locale} />
             </motion.div>
           ))}
         </motion.div>
@@ -406,100 +405,110 @@ function FilterBlock({ title, children }: { title: string; children: React.React
 }
 
 function TherapistCard({
-  t, locale, feature,
+  t, locale,
 }: {
   t: TherapistDoc;
   locale: LocaleT;
-  feature?: boolean;
 }) {
   const { t: tr } = useI18n();
   const initials = t.displayName.split(" ").slice(0, 2).map((n) => n[0]).join("");
   const accent =
-    t.id.charCodeAt(0) % 4 === 0 ? "from-lavender/80 via-lavender/30 to-card"
-    : t.id.charCodeAt(0) % 4 === 1 ? "from-blush/80 via-blush/35 to-card"
-    : t.id.charCodeAt(0) % 4 === 2 ? "from-sky/70 via-sky/25 to-card"
-    : "from-mint/75 via-mint/30 to-card";
+    t.id.charCodeAt(0) % 4 === 0 ? "from-lavender/40 via-lavender/10 to-card"
+    : t.id.charCodeAt(0) % 4 === 1 ? "from-blush/40 via-blush/10 to-card"
+    : t.id.charCodeAt(0) % 4 === 2 ? "from-sky/35 via-sky/10 to-card"
+    : "from-mint/35 via-mint/10 to-card";
 
   return (
     <article
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-[2rem] border border-border/50 bg-gradient-to-br shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-ink/15 hover:shadow-soft-lg",
-        accent,
-        feature && "md:min-h-[22rem]",
+        "group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-ink/15 hover:shadow-soft-lg",
+        accent
       )}
     >
-      {feature && (
-        <div aria-hidden className="blob pointer-events-none absolute -right-16 top-10 h-56 w-56 bg-card/60" />
-      )}
-
+      {/* Background card-wide Link overlay for safe navigation */}
       <Link
         to="/therapists/$id"
         params={{ id: t.id }}
-        className="relative flex flex-1 flex-col p-6 pb-3 outline-none focus-visible:ring-2 focus-visible:ring-lavender/60"
-      >
+        className="absolute inset-0 z-0"
+        aria-label={locale === "ar" ? "عرض الملف الشخصي" : "View Profile"}
+      />
+
+      <div className="relative z-10 flex flex-1 flex-col p-5 pointer-events-none">
+        {/* Header Row */}
         <div className="flex items-start justify-between gap-3">
-          <div className="relative">
-            <div className="grid h-[4.5rem] w-[4.5rem] place-items-center rounded-2xl border-2 border-card/90 bg-card font-display text-2xl shadow-sm ring-2 ring-ink/5">
-              {initials}
+          <div className="flex items-center gap-3">
+            <div className="relative shrink-0">
+              <div className="grid h-12 w-12 place-items-center rounded-2xl border border-border/40 bg-card font-display text-lg font-bold text-ink shadow-sm">
+                {initials}
+              </div>
+              {t.approved && (
+                <span className="absolute -bottom-1 -end-1 grid h-5 w-5 place-items-center rounded-full bg-mint text-ink shadow-sm" title={locale === "ar" ? "معتمد" : "Verified"}>
+                  <BadgeCheck className="h-3 w-3" />
+                </span>
+              )}
             </div>
-            {t.approved && (
-              <span className="absolute -bottom-1 -end-1 grid h-6 w-6 place-items-center rounded-full bg-mint text-ink shadow-sm" title={locale === "ar" ? "معتمد" : "Verified"}>
-                <BadgeCheck className="h-3.5 w-3.5" />
-              </span>
-            )}
+            <div>
+              <h3 className="font-display text-lg font-bold leading-tight text-ink">{t.displayName}</h3>
+              <p className="text-xs font-medium text-ink-muted/90">{t.title}</p>
+            </div>
           </div>
-          <div className="flex flex-col items-end gap-1.5">
-            <span className="inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 text-xs font-semibold shadow-sm">
-              <Heart className="h-3 w-3 fill-ink text-ink" /> {t.rating?.toFixed(1) ?? "—"}
-              {t.ratingCount ? <span className="font-normal text-ink-muted">({t.ratingCount})</span> : null}
+
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            <span className="inline-flex items-center gap-1 rounded-full bg-card/95 px-2 py-0.5 text-xs font-semibold shadow-sm border border-border/30 text-ink">
+              <Heart className="h-3 w-3 fill-ink text-ink" />
+              <span>{t.rating?.toFixed(1) ?? "—"}</span>
             </span>
-            <span className="rounded-full bg-ink/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-cream">
-              {locale === "ar" ? "ج.م" : "EGP"}
+            <span className="text-[10px] font-semibold text-ink-muted/80 uppercase tracking-wider">
+              {t.languages.map((l) => (l === "en" ? "EN" : "ع")).join(" · ")}
             </span>
           </div>
         </div>
 
-        <h3 className="relative mt-5 font-display text-2xl leading-tight text-ink">{t.displayName}</h3>
-        <p className="text-sm font-medium text-ink/70">{t.title}</p>
-
-        <p className={cn("mt-3 text-sm leading-relaxed text-ink-muted", feature ? "line-clamp-4" : "line-clamp-2")}>
+        {/* Bio description */}
+        <p className="mt-3.5 line-clamp-2 text-xs leading-relaxed text-ink-muted/90">
           {t.bio}
         </p>
 
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {t.specialties.slice(0, feature ? 6 : 3).map((s) => (
-            <span key={s} className="rounded-full border border-border/50 bg-card/90 px-2.5 py-0.5 text-[11px] font-medium capitalize">
+        {/* Specialties tags */}
+        <div className="mt-3 flex flex-wrap gap-1">
+          {t.specialties.slice(0, 2).map((s) => (
+            <span key={s} className="rounded-lg border border-border/40 bg-card/65 px-2 py-0.5 text-[10px] font-medium text-ink-muted/90 capitalize">
               {s.replace(/_/g, " ")}
             </span>
           ))}
+          {t.specialties.length > 2 && (
+            <span className="rounded-lg border border-border/40 bg-card/45 px-1.5 py-0.5 text-[10px] font-medium text-ink-muted/80">
+              +{t.specialties.length - 2}
+            </span>
+          )}
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
-          <span className="inline-flex items-center gap-1"><LangIcon className="h-3.5 w-3.5" /> {t.languages.map((l) => (l === "en" ? "EN" : "ع")).join(" · ")}</span>
-          {t.format !== "in_person" && <span className="inline-flex items-center gap-1"><Video className="h-3.5 w-3.5" /> {tr.therapists.formatOnline}</span>}
-          {t.format !== "online" && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {tr.therapists.formatInPerson}</span>}
+        {/* Session details */}
+        <div className="mt-auto pt-4 flex items-center justify-between border-t border-border/30">
+          <div className="flex items-center gap-1.5 text-[11px] text-ink-muted/80">
+            {t.format !== "in_person" && <span className="inline-flex items-center gap-1"><Video className="h-3 w-3" /> {tr.therapists.formatOnline}</span>}
+            {t.format !== "online" && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {tr.therapists.formatInPerson}</span>}
+          </div>
+          <p className="font-display text-base font-bold text-ink">
+            {priceLabel(t.pricePerSession, t.currency || "EGP", locale)}
+            <span className="text-[11px] font-normal text-ink-muted/80">/{t.sessionMinutes ?? 50}{tr.booking.minutes}</span>
+          </p>
         </div>
+      </div>
 
-        <p className="mt-4 font-display text-2xl text-ink">
-          {priceLabel(t.pricePerSession, t.currency || "EGP", locale)}
-          <span className="text-sm font-normal text-ink-muted"> / {t.sessionMinutes ?? 50} {tr.booking.minutes}</span>
-        </p>
-      </Link>
-
-      <div className="relative flex gap-2 border-t border-border/40 bg-card/40 p-4 backdrop-blur-sm">
-        <Link
-          to="/therapists/$id"
-          params={{ id: t.id }}
-          className="inline-flex flex-1 items-center justify-center gap-1 rounded-full border border-border bg-card px-3 py-2.5 text-xs font-semibold transition-colors hover:bg-muted"
-        >
+      {/* Footer buttons row */}
+      <div className="relative z-10 flex gap-2 border-t border-border/30 bg-card/30 p-3.5 backdrop-blur-sm">
+        {/* Mock profile button with pointer-events-none so clicks fall through to the main card overlay */}
+        <div className="inline-flex flex-1 items-center justify-center gap-1 rounded-xl border border-border/60 bg-card px-3 py-2 text-xs font-semibold text-ink pointer-events-none">
           {tr.therapists.viewProfile}
-          <ArrowUpRight className="h-3.5 w-3.5 rtl:rotate-180" />
-        </Link>
+          <ArrowUpRight className="h-3 w-3 rtl:rotate-180" />
+        </div>
+        {/* Interactive booking button (stops bubbling or is relative z-10) */}
         <BookTherapistLink
           therapistId={t.id}
-          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-ink px-3 py-2.5 text-xs font-semibold text-cream transition-transform group-hover:scale-[1.02]"
+          className="inline-flex flex-1 items-center justify-center gap-1 rounded-xl bg-ink px-3 py-2 text-xs font-semibold text-cream transition-transform active:scale-95"
         >
-          <CalendarCheck className="h-3.5 w-3.5" />
+          <CalendarCheck className="h-3 w-3" />
           {tr.therapists.bookCta}
         </BookTherapistLink>
       </div>

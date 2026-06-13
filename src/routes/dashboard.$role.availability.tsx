@@ -101,6 +101,18 @@ function AvailabilityPage() {
 
   async function saveInstapay() {
     if (!user) return;
+    const trimmedLink = instapay.link.trim();
+    if (trimmedLink) {
+      const regex = /^https?:\/\/(?:www\.)?ipn\.eg\/S\/\S+/i;
+      if (!regex.test(trimmedLink)) {
+        toast.error(
+          locale === "ar"
+            ? "رابط InstaPay غير صالح. يجب أن يكون بالتنسيق: https://ipn.eg/S/username"
+            : "Invalid InstaPay link. It must be in the format: https://ipn.eg/S/username"
+        );
+        return;
+      }
+    }
     setSavingIp(true);
     try {
       if (isFirebaseConfigured && db) {

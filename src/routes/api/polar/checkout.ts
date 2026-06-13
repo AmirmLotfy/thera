@@ -1,13 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { adminDb, verifyIdToken } from "@/lib/firebase.server";
-import { polarClient, polarConfigured, siteUrl } from "@/lib/polar.server";
-import { Timestamp } from "firebase-admin/firestore";
+import { siteUrl } from "@/lib/polar.server";
+import { confirmBookingPayment } from "@/lib/booking/confirm.server";
 
 type Body = { bookingId: string };
 
 export const Route = createFileRoute("/api/polar/checkout")({
   server: {
     handlers: {
+      GET: async () => {
+        // Always enabled for mock bookings
+        return Response.json({ enabled: true });
+      },
       POST: async ({ request }) => {
         const decoded = await verifyIdToken(request);
         if (!decoded) return new Response("Unauthorized", { status: 401 });
@@ -43,67 +47,15 @@ export const Route = createFileRoute("/api/polar/checkout")({
           return Response.json({ error: "Slot lock expired or invalid" }, { status: 409 });
         }
 
-        if (!polarConfigured()) {
-          return Response.json(
-            { error: "Card payments are not enabled yet. Please use InstaPay.", code: "polar_deferred" },
-            { status: 503 },
-          );
-        }
-
-        const polar = polarClient();
-        if (!polar) return new Response("Polar client unavailable", { status: 501 });
-
-        const paymentRef = booking.paymentId
-          ? db.collection("payments").doc(booking.paymentId)
-          : db.collection("payments").doc();
-        const now = Timestamp.now();
-        const base = siteUrl();
-        const successUrl = `${base}/checkout/success?bookingId=${body.bookingId}`;
-
         try {
-          const checkout = await polar.checkouts.create({
-            products: [process.env.POLAR_PRODUCT_ID!],
-            amount: booking.amount ?? 0,
-            currency: (booking.currency ?? "EGP").toLowerCase() as "egp",
-            metadata: { bookingId: body.bookingId },
-            successUrl,
-            returnUrl: `${base}/checkout/${body.bookingId}`,
-            allowDiscountCodes: false,
-            customerEmail: decoded.email ?? undefined,
-            externalCustomerId: decoded.uid,
-          });
+          // Confirm booking instantly and return mock success URL
+          await confirmBookingPayment(db, bookingSnap.ref, booking as any, decoded.uid, "mock");
 
-          await db.runTransaction(async (tx) => {
-            if (!booking.paymentId) {
-              tx.set(paymentRef, {
-                id: paymentRef.id,
-                bookingId: body.bookingId,
-                uid: decoded.uid,
-                provider: "polar",
-                amount: booking.amount ?? 0,
-                currency: booking.currency ?? "EGP",
-                status: "pending",
-                providerSessionId: checkout.id,
-                createdAt: now,
-              });
-              tx.update(bookingSnap.ref, {
-                paymentId: paymentRef.id,
-                paymentProvider: "polar",
-                updatedAt: now,
-              });
-            } else {
-              tx.update(paymentRef, {
-                providerSessionId: checkout.id,
-                status: "pending",
-                updatedAt: now,
-              });
-            }
-          });
-
-          return Response.json({ checkoutUrl: checkout.url });
+          const successUrl = `${siteUrl()}/checkout/success?bookingId=${body.bookingId}`;
+          return Response.json({ checkoutUrl: successUrl });
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
-          console.error("[api/polar/checkout]", msg);
+          console.error("[api/polar/checkout-mock]", msg);
           return Response.json({ error: msg }, { status: 500 });
         }
       },

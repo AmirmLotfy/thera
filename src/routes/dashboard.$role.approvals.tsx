@@ -66,7 +66,7 @@ function ApprovalsPage() {
   const [rejectFor, setRejectFor] = React.useState<string | null>(null);
   const [rejectReason, setRejectReason] = React.useState("");
 
-  async function decide(applicationId: string, decision: "approve" | "reject", reason?: string): Promise<boolean> {
+  async function decide(applicationId: string, decision: "approve" | "reject" | "review", reason?: string): Promise<boolean> {
     if (!user) return false;
     setBusy(applicationId);
     try {
@@ -119,7 +119,7 @@ function ApprovalsPage() {
                   {a.linkedinUrl ? <a href={a.linkedinUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-xs font-semibold">LinkedIn <ExternalLink className="h-3 w-3" /></a> : null}
                 </div>
               </div>
-              <div className="mt-5 flex gap-2">
+              <div className="mt-5 flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => void decide(a.id, "approve")}
                   disabled={busy === a.id}
@@ -136,6 +136,21 @@ function ApprovalsPage() {
                 >
                   <X className="h-4 w-4" /> {locale === "ar" ? "رفض" : "Reject"}
                 </button>
+                {a.status === "submitted" ? (
+                  <button
+                    onClick={() => void decide(a.id, "review")}
+                    disabled={busy === a.id}
+                    className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-5 py-2 text-xs font-semibold text-ink disabled:opacity-60"
+                  >
+                    {busy === a.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                    {locale === "ar" ? "بدء المراجعة" : "Mark as Reviewing"}
+                  </button>
+                ) : a.status === "under_review" ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-sky/20 px-4 py-2 text-xs font-semibold text-ink-muted">
+                    <span className="h-2 w-2 rounded-full bg-sky animate-pulse" />
+                    {locale === "ar" ? "تحت المراجعة" : "Under review"}
+                  </span>
+                ) : null}
               </div>
             </article>
           ))}

@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.releaseExpiredLocks = exports.pruneAdminLogs = exports.scheduledReminders = exports.notifyReportReady = exports.sendBookingEmail = void 0;
+exports.releaseExpiredLocks = exports.pruneAdminLogs = exports.scheduledReminders = exports.notifyReportReady = exports.sendBookingEmail = exports.notifyTherapistApplicationDecision = void 0;
 /**
  * Thera Cloud Functions — trigger + schedule only.
  *
@@ -77,7 +77,7 @@ async function emailUser(uid, subject, html, text) {
     const resend = resendClient();
     if (!resend)
         return;
-    const from = EMAIL_FROM.value() || "Thera <notifications@thera.app>";
+    const from = EMAIL_FROM.value() || "Thera <notifications@wethera.site>";
     const user = await admin.auth().getUser(uid).catch(() => null);
     const to = user?.email;
     if (!to)
@@ -196,6 +196,94 @@ function bilingualNotif(uid, kind, titleEn, titleAr, bodyEn, bodyAr) {
     };
 }
 // ── Cloud Function exports ──
+function therapistApprovedEmailEn(appUrl) {
+    const html = `
+  <div style="font-family:-apple-system,sans-serif;max-width:560px;margin:auto;color:#1F1B2E">
+    <div style="background:#CDB4DB;padding:32px;border-radius:24px">
+      <h1 style="margin:0;font-family:Georgia,serif">Your Thera therapist application was approved.</h1>
+      <p style="margin:8px 0 0">You can now sign in and open your therapist dashboard.</p>
+    </div>
+    <div style="padding:24px 0">
+      <a href="${appUrl}/dashboard/therapist" style="background:#1F1B2E;color:#FFF6E9;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:600">Open dashboard</a>
+    </div>
+  </div>`;
+    return { subject: "Welcome to Thera — application approved", html, text: `Your application was approved: ${appUrl}/dashboard/therapist` };
+}
+function therapistApprovedEmailAr(appUrl) {
+    const html = `
+  <div dir="rtl" style="font-family:Tajawal,Arial,sans-serif;max-width:560px;margin:auto;color:#1F1B2E">
+    <div style="background:#CDB4DB;padding:32px;border-radius:24px">
+      <h1 style="margin:0">تمت الموافقة على طلب انضمامك كمعالج على ثيرا.</h1>
+      <p style="margin:8px 0 0">يمكنك الآن تسجيل الدخول وفتح لوحة المعالج.</p>
+    </div>
+    <div style="padding:24px 0">
+      <a href="${appUrl}/dashboard/therapist" style="background:#1F1B2E;color:#FFF6E9;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:600">فتح لوحة التحكم</a>
+    </div>
+  </div>`;
+    return { subject: "مرحبًا بك في ثيرا — تمت الموافقة على طلبك", html, text: `تمت الموافقة: ${appUrl}/dashboard/therapist` };
+}
+function therapistRejectedEmailEn(appUrl, reason) {
+    const note = reason ? `<p style="margin-top:12px;color:#4B5563"><strong>Note:</strong> ${reason}</p>` : "";
+    const html = `
+  <div style="font-family:-apple-system,sans-serif;max-width:560px;margin:auto;color:#1F1B2E">
+    <div style="background:#F7D6E0;padding:32px;border-radius:24px">
+      <h1 style="margin:0;font-family:Georgia,serif">Update on your Thera application</h1>
+      <p style="margin:8px 0 0">We could not approve your therapist application at this time.</p>
+      ${note}
+    </div>
+  </div>`;
+    return { subject: "Thera therapist application update", html, text: `Application not approved.${reason ? ` ${reason}` : ""}` };
+}
+function therapistRejectedEmailAr(appUrl, reason) {
+    const note = reason ? `<p style="margin-top:12px;color:#4B5563"><strong>ملاحظة:</strong> ${reason}</p>` : "";
+    const html = `
+  <div dir="rtl" style="font-family:Tajawal,Arial,sans-serif;max-width:560px;margin:auto;color:#1F1B2E">
+    <div style="background:#F7D6E0;padding:32px;border-radius:24px">
+      <h1 style="margin:0">تحديث بشأن طلب انضمامك لثيرا</h1>
+      <p style="margin:8px 0 0">لم نتمكن من الموافقة على طلبك كمعالج في الوقت الحالي.</p>
+      ${note}
+    </div>
+  </div>`;
+    return { subject: "تحديث طلب المعالج على ثيرا", html, text: `لم تتم الموافقة.${reason ? ` ${reason}` : ""}` };
+}
+exports.notifyTherapistApplicationDecision = (0, firestore_1.onDocumentUpdated)({ document: "therapistApplications/{id}", secrets: [RESEND_API_KEY, EMAIL_FROM, APP_URL] }, async (event) => {
+    const before = event.data?.before.data();
+    const after = event.data?.after.data();
+    if (!before || !after)
+        return;
+    const prev = before.status;
+    const next = after.status;
+    if (prev === next)
+        return;
+    if (next !== "approved" && next !== "rejected")
+        return;
+    const uid = after.uid;
+    if (!uid)
+        return;
+    const appUrl = APP_URL.value() || "https://www.wethera.site";
+    const locale = await getUserLocale(uid);
+    const user = await admin.auth().getUser(uid).catch(() => null);
+    const to = after.email ?? user?.email;
+    if (!to)
+        return;
+    const email = next === "approved"
+        ? locale === "ar"
+            ? therapistApprovedEmailAr(appUrl)
+            : therapistApprovedEmailEn(appUrl)
+        : locale === "ar"
+            ? therapistRejectedEmailAr(appUrl, after.adminNote ?? null)
+            : therapistRejectedEmailEn(appUrl, after.adminNote ?? null);
+    const client = resendClient();
+    if (!client)
+        return;
+    await client.emails.send({
+        from: EMAIL_FROM.value() || "Thera <notifications@wethera.site>",
+        to,
+        subject: email.subject,
+        html: email.html,
+        text: email.text,
+    });
+});
 exports.sendBookingEmail = (0, firestore_1.onDocumentUpdated)({ document: "bookings/{id}", secrets: [RESEND_API_KEY, EMAIL_FROM, APP_URL] }, async (event) => {
     const before = event.data?.before.data();
     const after = event.data?.after.data();
@@ -205,7 +293,7 @@ exports.sendBookingEmail = (0, firestore_1.onDocumentUpdated)({ document: "booki
         const therapistSnap = await db.doc(`therapists/${after.therapistId}`).get();
         const therapistName = therapistSnap.data()?.displayName ?? "your therapist";
         const locale = await getUserLocale(after.patientUid);
-        const appUrl = APP_URL.value() || "https://thera.app";
+        const appUrl = APP_URL.value() || "https://www.wethera.site";
         const emailOpts = { therapistName, startsAt: after.startsAt ?? new Date().toISOString(), appUrl, bookingId: event.params.id };
         const email = locale === "ar"
             ? bookingConfirmationEmailAr(emailOpts)
@@ -218,7 +306,7 @@ exports.notifyReportReady = (0, firestore_1.onDocumentCreated)({ document: "repo
     if (!data)
         return;
     const locale = await getUserLocale(data.patientUid);
-    const appUrl = APP_URL.value() || "https://thera.app";
+    const appUrl = APP_URL.value() || "https://www.wethera.site";
     const emailOpts = { appUrl, reportId: event.params.id };
     const email = locale === "ar"
         ? reportReadyEmailAr(emailOpts)
@@ -250,7 +338,7 @@ exports.scheduledReminders = (0, scheduler_1.onSchedule)({ schedule: "every 15 m
             const therapistSnap = await db.doc(`therapists/${s.therapistId}`).get();
             const therapistName = therapistSnap.data()?.displayName ?? "your therapist";
             const locale = await getUserLocale(s.patientUid);
-            const appUrl = APP_URL.value() || "https://thera.app";
+            const appUrl = APP_URL.value() || "https://www.wethera.site";
             const emailOpts = { appUrl, startsAt: s.startsAt, therapistName, sessionId: sessionDoc.id };
             const email = locale === "ar"
                 ? sessionReminderEmailAr(emailOpts)

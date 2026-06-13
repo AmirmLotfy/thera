@@ -53,7 +53,7 @@ function Hero() {
 
           <h1
             className={`hero-title hero-title-xl mt-6 text-balance font-display text-[3.25rem] md:text-[5.5rem] ${
-              dir === "rtl" ? "space-y-1" : "leading-[0.95] tracking-tight"
+              dir === "rtl" ? "leading-[1.25] md:leading-[1.15] tracking-normal space-y-1" : "leading-[1.0] md:leading-[0.95] tracking-tight"
             }`}
           >
             <motion.span
@@ -88,7 +88,7 @@ function Hero() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.35 }}
             className={`mt-6 max-w-xl text-pretty text-ink-muted ${
-              dir === "rtl" ? "text-xl leading-8" : "text-lg leading-relaxed"
+              dir === "rtl" ? "text-[1.1rem] leading-[1.8] md:text-[1.25rem] md:leading-[1.7]" : "text-lg leading-relaxed"
             }`}
           >
             {t.home.sub}

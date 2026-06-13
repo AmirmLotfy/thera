@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Link, useLocation } from "@tanstack/react-router";
-import { Menu } from "lucide-react";
+import { Menu, Globe } from "lucide-react";
 import { useAuth, type Role } from "@/lib/auth";
 import { useI18n } from "@/i18n/I18nProvider";
 import { overflowNavItems, primaryNavItems } from "@/lib/dashboard/nav";
@@ -81,6 +81,17 @@ export function DashboardBottomNav() {
                 </li>
               );
             })}
+            <hr className="my-1.5 border-border/60" />
+            <li>
+              <Link
+                to="/"
+                onClick={() => setMoreOpen(false)}
+                className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-ink hover:bg-muted"
+              >
+                <Globe className="h-5 w-5 shrink-0 text-ink-muted" />
+                {locale === "ar" ? "الموقع العام" : "Public Site"}
+              </Link>
+            </li>
           </ul>
         </DialogContent>
       </Dialog>

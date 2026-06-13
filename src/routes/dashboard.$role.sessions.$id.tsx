@@ -81,6 +81,18 @@ function SessionRoom() {
     if (call) { await call.leave(); await call.destroy(); callRef.current = null; }
     setPhase("ended");
     if (effectiveRole === "therapist") setShowReport(true);
+
+    if (user) {
+      try {
+        const idToken = await user.getIdToken();
+        await fetch(`/api/sessions/${id}/end`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
+      } catch (err) {
+        console.error("session end error", err);
+      }
+    }
   }
 
   React.useEffect(() => () => { void callRef.current?.destroy(); }, []);

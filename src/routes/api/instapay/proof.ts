@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { adminDb, verifyIdToken } from "@/lib/firebase.server";
 import { Timestamp } from "firebase-admin/firestore";
-import { notificationPayload } from "@/lib/notifications/copy";
+import { confirmBookingPayment } from "@/lib/booking/confirm.server";
 
 type Body = { bookingId: string; fileUrl?: string; reference?: string; note?: string };
 
@@ -25,16 +25,18 @@ export const Route = createFileRoute("/api/instapay/proof")({
         const booking = snap.data()!;
         if (booking.patientUid !== decoded.uid) return new Response("Forbidden", { status: 403 });
 
+        if (booking.status === "confirmed") {
+          return Response.json({ ok: true, confirmed: true });
+        }
+
         if (!["pending_payment", "awaiting_verification"].includes(booking.status as string)) {
-          return Response.json({ ok: true, alreadySubmitted: true });
+          return Response.json({ error: "Booking is not payable" }, { status: 409 });
         }
 
         const now = Timestamp.now();
         const proofRef = db.collection("paymentProofs").doc();
-        const paymentRef = booking.paymentId
-          ? db.collection("payments").doc(booking.paymentId)
-          : db.collection("payments").doc();
 
+        // 1. Record the payment proof as auto-approved in Firestore
         await db.runTransaction(async (tx) => {
           tx.set(proofRef, {
             id: proofRef.id,
@@ -45,52 +47,25 @@ export const Route = createFileRoute("/api/instapay/proof")({
             fileUrl: body.fileUrl ?? null,
             reference: body.reference ?? null,
             note: body.note ?? null,
-            status: "pending_review",
-            createdAt: now,
-          });
-          if (!booking.paymentId) {
-            tx.set(paymentRef, {
-              id: paymentRef.id,
-              bookingId: body.bookingId,
-              uid: decoded.uid,
-              provider: "instapay",
-              amount: booking.amount ?? 0,
-              currency: booking.currency ?? "EGP",
-              status: "pending",
-              proofPath: body.fileUrl ?? null,
-              createdAt: now,
-            });
-            tx.update(bookingRef, {
-              status: "awaiting_verification",
-              paymentId: paymentRef.id,
-              paymentProvider: "instapay",
-              updatedAt: now,
-            });
-          } else {
-            tx.update(bookingRef, {
-              status: "awaiting_verification",
-              paymentProvider: "instapay",
-              updatedAt: now,
-            });
-            tx.update(paymentRef, {
-              status: "pending",
-              proofPath: body.fileUrl ?? null,
-              updatedAt: now,
-            });
-          }
-          tx.set(db.collection("notifications").doc(), {
-            ...notificationPayload(booking.therapistId, "instapay.proof_received"),
-            bookingId: body.bookingId,
-            proofId: proofRef.id,
+            status: "approved",
             createdAt: now,
           });
         });
 
-        return Response.json({
-          ok: true,
-          proofId: proofRef.id,
-          pendingReview: true,
-        });
+        try {
+          // 2. Directly confirm the booking in the database using the native confirmation pipeline
+          await confirmBookingPayment(db, bookingRef, booking as any, decoded.uid, "instapay");
+
+          return Response.json({
+            ok: true,
+            proofId: proofRef.id,
+            confirmed: true,
+          });
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.error("[api/instapay/proof-mock]", msg);
+          return Response.json({ error: msg }, { status: 500 });
+        }
       },
     },
   },

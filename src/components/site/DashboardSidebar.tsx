@@ -5,6 +5,8 @@ import { useI18n } from "@/i18n/I18nProvider";
 import type { Role } from "@/lib/auth";
 import { getDashboardNavItems } from "@/lib/dashboard/nav";
 
+import { Globe } from "lucide-react";
+
 export function DashboardSidebar() {
   const { effectiveRole, profile } = useAuth();
   const { locale } = useI18n();
@@ -39,6 +41,14 @@ export function DashboardSidebar() {
               </Link>
             );
           })}
+          <hr className="my-1.5 border-border/60" />
+          <Link
+            to="/"
+            className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-ink-muted hover:bg-muted/60 hover:text-ink transition-colors"
+          >
+            <Globe className="h-4 w-4 shrink-0" />
+            <span>{locale === "ar" ? "الموقع العام" : "Public Site"}</span>
+          </Link>
         </nav>
       </div>
     </aside>
