@@ -31,9 +31,7 @@ let _storage: FirebaseStorage | null = null;
 if (isFirebaseConfigured && typeof window !== "undefined") {
   app = getApps().length ? getApps()[0] : initializeApp(config as Required<typeof config>);
   _auth = getAuth(app);
-  _db = initializeFirestore(app, {
-    experimentalForceLongPolling: true,
-  });
+  _db = initializeFirestore(app, {});
   _storage = getStorage(app);
 }
 

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import * as React from "react";
 import { CookieConsent } from "@/components/site/CookieConsent";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardBottomNav } from "@/components/dashboard/DashboardBottomNav";

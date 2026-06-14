@@ -28,6 +28,11 @@ function SessionRoom() {
   const videoRef = React.useRef<HTMLDivElement>(null);
   const callRef = React.useRef<DailyCall | null>(null);
 
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [phase, setPhase] = React.useState<"idle" | "connecting" | "live" | "ended">("idle");
   const [tokenInfo, setTokenInfo] = React.useState<TokenResponse | null>(null);
   const [mic, setMic] = React.useState(true);
@@ -73,7 +78,7 @@ function SessionRoom() {
         setChat((prev) => [...prev, { from: event.fromId ?? "guest", text: String(payload.text), at: Date.now() }]);
       }
     });
-    await frame.join({ url: tokenInfo.roomUrl, token: tokenInfo.token ?? undefined, userName: user?.displayName ?? "Client" });
+    await frame.join({ url: tokenInfo.roomUrl, token: tokenInfo.token || undefined, userName: user?.displayName ?? "Client" });
   }
 
   async function leave() {
@@ -118,6 +123,14 @@ function SessionRoom() {
     setChat((p) => [...p, { from: "me", text, at: Date.now() }]);
     callRef.current?.sendAppMessage({ type: "chat", text }, "*");
     setChatInput("");
+  }
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-[#FFF6E9] flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-ink border-t-transparent" />
+      </div>
+    );
   }
 
   return (

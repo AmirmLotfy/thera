@@ -1,4 +1,5 @@
 import { useLocation } from "@tanstack/react-router";
+import * as React from "react";
 import { SiteHeader } from "./SiteHeader";
 import { SiteFooter } from "./SiteFooter";
 import { CookieConsent } from "./CookieConsent";
