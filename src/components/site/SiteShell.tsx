@@ -11,7 +11,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   const useDashboardShell = path.startsWith("/dashboard") && !isTherapistPending;
 
   if (useDashboardShell) {
-    return <DashboardShell>{children}</DashboardShell>;
+    return <>{children}</>;
   }
 
   return (

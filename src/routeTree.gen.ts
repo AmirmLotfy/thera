@@ -28,6 +28,7 @@ import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as TherapistsIdRouteImport } from './routes/therapists.$id'
 import { Route as SettingsSecurityRouteImport } from './routes/settings.security'
 import { Route as OnboardingRoleRouteImport } from './routes/onboarding.$role'
+import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
 import { Route as DashboardRoleRouteImport } from './routes/dashboard.$role'
 import { Route as CheckoutSuccessRouteImport } from './routes/checkout.success'
 import { Route as CheckoutCancelRouteImport } from './routes/checkout.cancel'
@@ -182,6 +183,11 @@ const OnboardingRoleRoute = OnboardingRoleRouteImport.update({
   path: '/onboarding/$role',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardAdminRoute = DashboardAdminRouteImport.update({
+  id: '/dashboard/admin',
+  path: '/dashboard/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoleRoute = DashboardRoleRouteImport.update({
   id: '/dashboard/$role',
   path: '/dashboard/$role',
@@ -253,39 +259,39 @@ const DashboardRoleIndexRoute = DashboardRoleIndexRouteImport.update({
   getParentRoute: () => DashboardRoleRoute,
 } as any)
 const DashboardAdminUsersRoute = DashboardAdminUsersRouteImport.update({
-  id: '/dashboard/admin/users',
-  path: '/dashboard/admin/users',
-  getParentRoute: () => rootRouteImport,
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => DashboardAdminRoute,
 } as any)
 const DashboardAdminSettingsRoute = DashboardAdminSettingsRouteImport.update({
-  id: '/dashboard/admin/settings',
-  path: '/dashboard/admin/settings',
-  getParentRoute: () => rootRouteImport,
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashboardAdminRoute,
 } as any)
 const DashboardAdminSessionsRoute = DashboardAdminSessionsRouteImport.update({
-  id: '/dashboard/admin/sessions',
-  path: '/dashboard/admin/sessions',
-  getParentRoute: () => rootRouteImport,
+  id: '/sessions',
+  path: '/sessions',
+  getParentRoute: () => DashboardAdminRoute,
 } as any)
 const DashboardAdminPaymentsRoute = DashboardAdminPaymentsRouteImport.update({
-  id: '/dashboard/admin/payments',
-  path: '/dashboard/admin/payments',
-  getParentRoute: () => rootRouteImport,
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => DashboardAdminRoute,
 } as any)
 const DashboardAdminContentRoute = DashboardAdminContentRouteImport.update({
-  id: '/dashboard/admin/content',
-  path: '/dashboard/admin/content',
-  getParentRoute: () => rootRouteImport,
+  id: '/content',
+  path: '/content',
+  getParentRoute: () => DashboardAdminRoute,
 } as any)
 const DashboardAdminAnalyticsRoute = DashboardAdminAnalyticsRouteImport.update({
-  id: '/dashboard/admin/analytics',
-  path: '/dashboard/admin/analytics',
-  getParentRoute: () => rootRouteImport,
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => DashboardAdminRoute,
 } as any)
 const DashboardAdminAiLogsRoute = DashboardAdminAiLogsRouteImport.update({
-  id: '/dashboard/admin/ai-logs',
-  path: '/dashboard/admin/ai-logs',
-  getParentRoute: () => rootRouteImport,
+  id: '/ai-logs',
+  path: '/ai-logs',
+  getParentRoute: () => DashboardAdminRoute,
 } as any)
 const DashboardRoleVibeRoute = DashboardRoleVibeRouteImport.update({
   id: '/vibe',
@@ -506,6 +512,7 @@ export interface FileRoutesByFullPath {
   '/checkout/cancel': typeof CheckoutCancelRoute
   '/checkout/success': typeof CheckoutSuccessRoute
   '/dashboard/$role': typeof DashboardRoleRouteWithChildren
+  '/dashboard/admin': typeof DashboardAdminRouteWithChildren
   '/onboarding/$role': typeof OnboardingRoleRoute
   '/settings/security': typeof SettingsSecurityRoute
   '/therapists/$id': typeof TherapistsIdRoute
@@ -582,6 +589,7 @@ export interface FileRoutesByTo {
   '/checkout/$bookingId': typeof CheckoutBookingIdRoute
   '/checkout/cancel': typeof CheckoutCancelRoute
   '/checkout/success': typeof CheckoutSuccessRoute
+  '/dashboard/admin': typeof DashboardAdminRouteWithChildren
   '/onboarding/$role': typeof OnboardingRoleRoute
   '/settings/security': typeof SettingsSecurityRoute
   '/therapists/$id': typeof TherapistsIdRoute
@@ -662,6 +670,7 @@ export interface FileRoutesById {
   '/checkout/cancel': typeof CheckoutCancelRoute
   '/checkout/success': typeof CheckoutSuccessRoute
   '/dashboard/$role': typeof DashboardRoleRouteWithChildren
+  '/dashboard/admin': typeof DashboardAdminRouteWithChildren
   '/onboarding/$role': typeof OnboardingRoleRoute
   '/settings/security': typeof SettingsSecurityRoute
   '/therapists/$id': typeof TherapistsIdRoute
@@ -743,6 +752,7 @@ export interface FileRouteTypes {
     | '/checkout/cancel'
     | '/checkout/success'
     | '/dashboard/$role'
+    | '/dashboard/admin'
     | '/onboarding/$role'
     | '/settings/security'
     | '/therapists/$id'
@@ -819,6 +829,7 @@ export interface FileRouteTypes {
     | '/checkout/$bookingId'
     | '/checkout/cancel'
     | '/checkout/success'
+    | '/dashboard/admin'
     | '/onboarding/$role'
     | '/settings/security'
     | '/therapists/$id'
@@ -898,6 +909,7 @@ export interface FileRouteTypes {
     | '/checkout/cancel'
     | '/checkout/success'
     | '/dashboard/$role'
+    | '/dashboard/admin'
     | '/onboarding/$role'
     | '/settings/security'
     | '/therapists/$id'
@@ -970,6 +982,7 @@ export interface RootRouteChildren {
   CheckoutCancelRoute: typeof CheckoutCancelRoute
   CheckoutSuccessRoute: typeof CheckoutSuccessRoute
   DashboardRoleRoute: typeof DashboardRoleRouteWithChildren
+  DashboardAdminRoute: typeof DashboardAdminRouteWithChildren
   OnboardingRoleRoute: typeof OnboardingRoleRoute
   SettingsSecurityRoute: typeof SettingsSecurityRoute
   ApiAdminApproveTherapistRoute: typeof ApiAdminApproveTherapistRoute
@@ -986,13 +999,6 @@ export interface RootRouteChildren {
   ApiPolarCheckoutRoute: typeof ApiPolarCheckoutRoute
   ApiPolarWebhookRoute: typeof ApiPolarWebhookRoute
   ApiReportsCreateRoute: typeof ApiReportsCreateRoute
-  DashboardAdminAiLogsRoute: typeof DashboardAdminAiLogsRoute
-  DashboardAdminAnalyticsRoute: typeof DashboardAdminAnalyticsRoute
-  DashboardAdminContentRoute: typeof DashboardAdminContentRoute
-  DashboardAdminPaymentsRoute: typeof DashboardAdminPaymentsRoute
-  DashboardAdminSessionsRoute: typeof DashboardAdminSessionsRoute
-  DashboardAdminSettingsRoute: typeof DashboardAdminSettingsRoute
-  DashboardAdminUsersRoute: typeof DashboardAdminUsersRoute
   ApiAdminInstapayVerifyRoute: typeof ApiAdminInstapayVerifyRoute
   ApiAdminUsersStatusRoute: typeof ApiAdminUsersStatusRoute
   ApiCareThreadsOpenRoute: typeof ApiCareThreadsOpenRoute
@@ -1135,6 +1141,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRoleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/admin': {
+      id: '/dashboard/admin'
+      path: '/dashboard/admin'
+      fullPath: '/dashboard/admin'
+      preLoaderRoute: typeof DashboardAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard/$role': {
       id: '/dashboard/$role'
       path: '/dashboard/$role'
@@ -1235,52 +1248,52 @@ declare module '@tanstack/react-router' {
     }
     '/dashboard/admin/users': {
       id: '/dashboard/admin/users'
-      path: '/dashboard/admin/users'
+      path: '/users'
       fullPath: '/dashboard/admin/users'
       preLoaderRoute: typeof DashboardAdminUsersRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DashboardAdminRoute
     }
     '/dashboard/admin/settings': {
       id: '/dashboard/admin/settings'
-      path: '/dashboard/admin/settings'
+      path: '/settings'
       fullPath: '/dashboard/admin/settings'
       preLoaderRoute: typeof DashboardAdminSettingsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DashboardAdminRoute
     }
     '/dashboard/admin/sessions': {
       id: '/dashboard/admin/sessions'
-      path: '/dashboard/admin/sessions'
+      path: '/sessions'
       fullPath: '/dashboard/admin/sessions'
       preLoaderRoute: typeof DashboardAdminSessionsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DashboardAdminRoute
     }
     '/dashboard/admin/payments': {
       id: '/dashboard/admin/payments'
-      path: '/dashboard/admin/payments'
+      path: '/payments'
       fullPath: '/dashboard/admin/payments'
       preLoaderRoute: typeof DashboardAdminPaymentsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DashboardAdminRoute
     }
     '/dashboard/admin/content': {
       id: '/dashboard/admin/content'
-      path: '/dashboard/admin/content'
+      path: '/content'
       fullPath: '/dashboard/admin/content'
       preLoaderRoute: typeof DashboardAdminContentRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DashboardAdminRoute
     }
     '/dashboard/admin/analytics': {
       id: '/dashboard/admin/analytics'
-      path: '/dashboard/admin/analytics'
+      path: '/analytics'
       fullPath: '/dashboard/admin/analytics'
       preLoaderRoute: typeof DashboardAdminAnalyticsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DashboardAdminRoute
     }
     '/dashboard/admin/ai-logs': {
       id: '/dashboard/admin/ai-logs'
-      path: '/dashboard/admin/ai-logs'
+      path: '/ai-logs'
       fullPath: '/dashboard/admin/ai-logs'
       preLoaderRoute: typeof DashboardAdminAiLogsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DashboardAdminRoute
     }
     '/dashboard/$role/vibe': {
       id: '/dashboard/$role/vibe'
@@ -1660,6 +1673,30 @@ const DashboardRoleRouteWithChildren = DashboardRoleRoute._addFileChildren(
   DashboardRoleRouteChildren,
 )
 
+interface DashboardAdminRouteChildren {
+  DashboardAdminAiLogsRoute: typeof DashboardAdminAiLogsRoute
+  DashboardAdminAnalyticsRoute: typeof DashboardAdminAnalyticsRoute
+  DashboardAdminContentRoute: typeof DashboardAdminContentRoute
+  DashboardAdminPaymentsRoute: typeof DashboardAdminPaymentsRoute
+  DashboardAdminSessionsRoute: typeof DashboardAdminSessionsRoute
+  DashboardAdminSettingsRoute: typeof DashboardAdminSettingsRoute
+  DashboardAdminUsersRoute: typeof DashboardAdminUsersRoute
+}
+
+const DashboardAdminRouteChildren: DashboardAdminRouteChildren = {
+  DashboardAdminAiLogsRoute: DashboardAdminAiLogsRoute,
+  DashboardAdminAnalyticsRoute: DashboardAdminAnalyticsRoute,
+  DashboardAdminContentRoute: DashboardAdminContentRoute,
+  DashboardAdminPaymentsRoute: DashboardAdminPaymentsRoute,
+  DashboardAdminSessionsRoute: DashboardAdminSessionsRoute,
+  DashboardAdminSettingsRoute: DashboardAdminSettingsRoute,
+  DashboardAdminUsersRoute: DashboardAdminUsersRoute,
+}
+
+const DashboardAdminRouteWithChildren = DashboardAdminRoute._addFileChildren(
+  DashboardAdminRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   R500Route: R500Route,
@@ -1680,6 +1717,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutCancelRoute: CheckoutCancelRoute,
   CheckoutSuccessRoute: CheckoutSuccessRoute,
   DashboardRoleRoute: DashboardRoleRouteWithChildren,
+  DashboardAdminRoute: DashboardAdminRouteWithChildren,
   OnboardingRoleRoute: OnboardingRoleRoute,
   SettingsSecurityRoute: SettingsSecurityRoute,
   ApiAdminApproveTherapistRoute: ApiAdminApproveTherapistRoute,
@@ -1696,13 +1734,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPolarCheckoutRoute: ApiPolarCheckoutRoute,
   ApiPolarWebhookRoute: ApiPolarWebhookRoute,
   ApiReportsCreateRoute: ApiReportsCreateRoute,
-  DashboardAdminAiLogsRoute: DashboardAdminAiLogsRoute,
-  DashboardAdminAnalyticsRoute: DashboardAdminAnalyticsRoute,
-  DashboardAdminContentRoute: DashboardAdminContentRoute,
-  DashboardAdminPaymentsRoute: DashboardAdminPaymentsRoute,
-  DashboardAdminSessionsRoute: DashboardAdminSessionsRoute,
-  DashboardAdminSettingsRoute: DashboardAdminSettingsRoute,
-  DashboardAdminUsersRoute: DashboardAdminUsersRoute,
   ApiAdminInstapayVerifyRoute: ApiAdminInstapayVerifyRoute,
   ApiAdminUsersStatusRoute: ApiAdminUsersStatusRoute,
   ApiCareThreadsOpenRoute: ApiCareThreadsOpenRoute,
