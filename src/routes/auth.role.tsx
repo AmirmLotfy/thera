@@ -20,7 +20,9 @@ function RolePicker() {
   React.useEffect(() => {
     if (loading || !configured) return;
     const stored = peekPostLoginRedirect();
-    if (stored?.startsWith("/book/")) setBookRedirect(stored);
+    if (stored && (stored.startsWith("/book/") || stored.startsWith("/therapists/") || stored.startsWith("/checkout/"))) {
+      setBookRedirect(stored);
+    }
   }, [loading, configured]);
 
   React.useEffect(() => {
@@ -107,7 +109,7 @@ function RolePicker() {
               type="button"
               onClick={() => pick(id)}
               disabled={!!picking}
-              className={`group relative z-0 flex min-h-[14.5rem] min-w-0 flex-col text-start rounded-3xl border border-border/70 ${color} p-6 shadow-soft transition-[box-shadow,border-color] hover:z-10 hover:border-ink/20 hover:shadow-md disabled:pointer-events-none disabled:opacity-60`}
+              className={`group relative z-0 flex min-h-[14.5rem] min-w-0 flex-col text-start rounded-3xl border border-border/70 ${color} p-6 shadow-soft transition-all duration-300 hover:z-10 hover:-translate-y-1 hover:border-ink/20 hover:shadow-soft-lg disabled:pointer-events-none disabled:opacity-60`}
             >
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-card/90 shadow-sm">
                 {picking === id ? <Loader2 className="h-5 w-5 animate-spin" /> : <Icon className="h-5 w-5" />}

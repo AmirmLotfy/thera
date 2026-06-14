@@ -1,3 +1,4 @@
+import * as React from "react";
 import { orderBy, where } from "firebase/firestore";
 import { useFirestoreLive } from "@/lib/queries/realtime";
 import { isFirebaseConfigured } from "@/lib/firebase";
@@ -10,14 +11,28 @@ export function useCareThreadsLive(uid: string | undefined | null, role: "patien
     queryKey: ["careThreads", uid, role],
     pathSegments: ["careThreads"],
     constraints: uid
-      ? [where(field, "==", uid), orderBy("lastMessageAt", "desc")]
+      ? [where(field, "==", uid)]
       : [],
     mapDoc: (id, data) => ({ ...(data as CareThread), id }),
     enabled: !!uid && isFirebaseConfigured,
     fallback: [],
   });
+
+  const sortedData = React.useMemo(() => {
+    if (!live.data) return [];
+    return [...live.data].sort((a, b) => {
+      const t1 = a.lastMessageAt && typeof a.lastMessageAt === "object" && "toMillis" in a.lastMessageAt
+        ? (a.lastMessageAt as { toMillis: () => number }).toMillis()
+        : new Date(a.lastMessageAt ?? 0).getTime();
+      const t2 = b.lastMessageAt && typeof b.lastMessageAt === "object" && "toMillis" in b.lastMessageAt
+        ? (b.lastMessageAt as { toMillis: () => number }).toMillis()
+        : new Date(b.lastMessageAt ?? 0).getTime();
+      return t2 - t1;
+    });
+  }, [live.data]);
+
   if (!uid) return { data: [] as CareThread[], loading: false, error: null };
-  return live;
+  return { ...live, data: sortedData };
 }
 
 export function useCareMessagesLive(threadId: string | undefined | null) {

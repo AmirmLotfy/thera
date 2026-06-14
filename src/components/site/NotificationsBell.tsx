@@ -29,11 +29,17 @@ export function NotificationsBell() {
     const q = query(
       collection(db, "notifications"),
       where("uid", "==", user.uid),
-      orderBy("createdAt", "desc"),
-      limit(10),
+      limit(25),
     );
     const unsub = onSnapshot(q, (snap) => {
-      setItems(snap.docs.map((d) => ({ ...(d.data() as Notif), id: d.id })));
+      const docs = snap.docs.map((d) => ({ ...(d.data() as Notif), id: d.id }));
+      // Sort in-memory desc by createdAt
+      docs.sort((a, b) => {
+        const tA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+        const tB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+        return tB - tA;
+      });
+      setItems(docs.slice(0, 10));
     });
     return () => unsub();
   }, [user]);

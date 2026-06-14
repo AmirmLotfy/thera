@@ -68,6 +68,7 @@ export interface TherapistDoc {
   ratingCount?: number;
   sessionMinutes?: number;   // typical length (default 50)
   instapay?: TherapistInstapay;
+  availableNow?: boolean;
   createdAt: unknown;
 }
 

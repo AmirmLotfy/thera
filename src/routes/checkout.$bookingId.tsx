@@ -368,7 +368,7 @@ function InstaPayPanel({
       )}
 
       <div className="rounded-2xl border border-dashed border-border p-4">
-        <label className="text-xs font-medium uppercase tracking-wider text-ink-muted">{locale === "ar" ? "لقطة إثبات التحويل" : "Transfer screenshot"}</label>
+        <label className="text-xs font-medium uppercase tracking-wider text-ink-muted">{locale === "ar" ? "لقطة إثبات التحويل (اختياري)" : "Transfer screenshot (Optional)"}</label>
         <input type="file" accept="image/*,application/pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="mt-2 block w-full text-sm" />
         <label className="mt-3 block text-xs font-medium uppercase tracking-wider text-ink-muted">{t.booking.bookingRef}</label>
         <input value={reference} onChange={(e) => setReference(e.target.value)} className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm" placeholder={locale === "ar" ? "مثال: IP-12345" : "e.g. IP-12345"} />
@@ -376,11 +376,11 @@ function InstaPayPanel({
 
       <button
         onClick={submitProof}
-        disabled={!file || submitting}
-        className="flex w-full items-center justify-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-semibold text-cream shadow-soft disabled:opacity-40"
+        disabled={submitting}
+        className="flex w-full items-center justify-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-semibold text-cream shadow-soft disabled:opacity-40 transition-transform active:scale-[0.98]"
       >
         {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-        {locale === "ar" ? "رفع الإثبات" : "Submit proof"}
+        {locale === "ar" ? "تأكيد الدفع التجريبي فوريًا (دون إثبات)" : "Instant Mock Confirm (No Proof Needed)"}
       </button>
     </div>
   );

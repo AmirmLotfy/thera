@@ -71,6 +71,7 @@ import { Route as ApiPolarCheckoutRouteImport } from './routes/api/polar/checkou
 import { Route as ApiInstapayProofRouteImport } from './routes/api/instapay/proof'
 import { Route as ApiCareMessagesRouteImport } from './routes/api/care/messages'
 import { Route as ApiBookingLockRouteImport } from './routes/api/booking/lock'
+import { Route as ApiBookingInstantRouteImport } from './routes/api/booking/instant'
 import { Route as ApiBookingCancelRouteImport } from './routes/api/booking/cancel'
 import { Route as ApiAiTranscribeRouteImport } from './routes/api/ai/transcribe'
 import { Route as ApiAiSummarizeRouteImport } from './routes/api/ai/summarize'
@@ -399,6 +400,11 @@ const ApiBookingLockRoute = ApiBookingLockRouteImport.update({
   path: '/api/booking/lock',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBookingInstantRoute = ApiBookingInstantRouteImport.update({
+  id: '/api/booking/instant',
+  path: '/api/booking/instant',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBookingCancelRoute = ApiBookingCancelRouteImport.update({
   id: '/api/booking/cancel',
   path: '/api/booking/cancel',
@@ -512,6 +518,7 @@ export interface FileRoutesByFullPath {
   '/api/ai/summarize': typeof ApiAiSummarizeRoute
   '/api/ai/transcribe': typeof ApiAiTranscribeRoute
   '/api/booking/cancel': typeof ApiBookingCancelRoute
+  '/api/booking/instant': typeof ApiBookingInstantRoute
   '/api/booking/lock': typeof ApiBookingLockRoute
   '/api/care/messages': typeof ApiCareMessagesRoute
   '/api/instapay/proof': typeof ApiInstapayProofRoute
@@ -587,6 +594,7 @@ export interface FileRoutesByTo {
   '/api/ai/summarize': typeof ApiAiSummarizeRoute
   '/api/ai/transcribe': typeof ApiAiTranscribeRoute
   '/api/booking/cancel': typeof ApiBookingCancelRoute
+  '/api/booking/instant': typeof ApiBookingInstantRoute
   '/api/booking/lock': typeof ApiBookingLockRoute
   '/api/care/messages': typeof ApiCareMessagesRoute
   '/api/instapay/proof': typeof ApiInstapayProofRoute
@@ -666,6 +674,7 @@ export interface FileRoutesById {
   '/api/ai/summarize': typeof ApiAiSummarizeRoute
   '/api/ai/transcribe': typeof ApiAiTranscribeRoute
   '/api/booking/cancel': typeof ApiBookingCancelRoute
+  '/api/booking/instant': typeof ApiBookingInstantRoute
   '/api/booking/lock': typeof ApiBookingLockRoute
   '/api/care/messages': typeof ApiCareMessagesRoute
   '/api/instapay/proof': typeof ApiInstapayProofRoute
@@ -746,6 +755,7 @@ export interface FileRouteTypes {
     | '/api/ai/summarize'
     | '/api/ai/transcribe'
     | '/api/booking/cancel'
+    | '/api/booking/instant'
     | '/api/booking/lock'
     | '/api/care/messages'
     | '/api/instapay/proof'
@@ -821,6 +831,7 @@ export interface FileRouteTypes {
     | '/api/ai/summarize'
     | '/api/ai/transcribe'
     | '/api/booking/cancel'
+    | '/api/booking/instant'
     | '/api/booking/lock'
     | '/api/care/messages'
     | '/api/instapay/proof'
@@ -899,6 +910,7 @@ export interface FileRouteTypes {
     | '/api/ai/summarize'
     | '/api/ai/transcribe'
     | '/api/booking/cancel'
+    | '/api/booking/instant'
     | '/api/booking/lock'
     | '/api/care/messages'
     | '/api/instapay/proof'
@@ -967,6 +979,7 @@ export interface RootRouteChildren {
   ApiAiSummarizeRoute: typeof ApiAiSummarizeRoute
   ApiAiTranscribeRoute: typeof ApiAiTranscribeRoute
   ApiBookingCancelRoute: typeof ApiBookingCancelRoute
+  ApiBookingInstantRoute: typeof ApiBookingInstantRoute
   ApiBookingLockRoute: typeof ApiBookingLockRoute
   ApiCareMessagesRoute: typeof ApiCareMessagesRoute
   ApiInstapayProofRoute: typeof ApiInstapayProofRoute
@@ -1423,6 +1436,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBookingLockRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/booking/instant': {
+      id: '/api/booking/instant'
+      path: '/api/booking/instant'
+      fullPath: '/api/booking/instant'
+      preLoaderRoute: typeof ApiBookingInstantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/booking/cancel': {
       id: '/api/booking/cancel'
       path: '/api/booking/cancel'
@@ -1669,6 +1689,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAiSummarizeRoute: ApiAiSummarizeRoute,
   ApiAiTranscribeRoute: ApiAiTranscribeRoute,
   ApiBookingCancelRoute: ApiBookingCancelRoute,
+  ApiBookingInstantRoute: ApiBookingInstantRoute,
   ApiBookingLockRoute: ApiBookingLockRoute,
   ApiCareMessagesRoute: ApiCareMessagesRoute,
   ApiInstapayProofRoute: ApiInstapayProofRoute,

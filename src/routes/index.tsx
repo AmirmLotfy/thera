@@ -52,8 +52,10 @@ function Hero() {
           </motion.div>
 
           <h1
-            className={`hero-title hero-title-xl mt-6 text-balance font-display text-[3.25rem] md:text-[5.5rem] ${
-              dir === "rtl" ? "leading-[1.25] md:leading-[1.15] tracking-normal space-y-1" : "leading-[1.0] md:leading-[0.95] tracking-tight"
+            className={`hero-title hero-title-xl mt-6 text-balance text-[3.25rem] md:text-[5.5rem] ${
+              dir === "rtl"
+                ? "font-display leading-[1.25] md:leading-[1.15] tracking-normal space-y-1"
+                : "font-sans font-extrabold leading-[1.15] md:leading-[1.1] tracking-tight"
             }`}
           >
             <motion.span

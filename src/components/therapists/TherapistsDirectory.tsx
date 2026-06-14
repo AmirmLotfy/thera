@@ -441,6 +441,11 @@ function TherapistCard({
               <div className="grid h-12 w-12 place-items-center rounded-2xl border border-border/40 bg-card font-display text-lg font-bold text-ink shadow-sm">
                 {initials}
               </div>
+              {t.availableNow && (
+                <span className="absolute -top-1 -start-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 shadow-sm border border-card ring-1 ring-emerald-400 animate-pulse" title={locale === "ar" ? "أونلاين الآن" : "Online Now"}>
+                  <span className="h-1.5 w-1.5 rounded-full bg-cream" />
+                </span>
+              )}
               {t.approved && (
                 <span className="absolute -bottom-1 -end-1 grid h-5 w-5 place-items-center rounded-full bg-mint text-ink shadow-sm" title={locale === "ar" ? "معتمد" : "Verified"}>
                   <BadgeCheck className="h-3 w-3" />
@@ -448,7 +453,15 @@ function TherapistCard({
               )}
             </div>
             <div>
-              <h3 className="font-display text-lg font-bold leading-tight text-ink">{t.displayName}</h3>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-display text-lg font-bold leading-tight text-ink">{t.displayName}</h3>
+                {t.availableNow && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider animate-pulse border border-emerald-500/25 shrink-0">
+                    <span className="h-1 w-1 rounded-full bg-emerald-500" />
+                    {locale === "ar" ? "أونلاين الآن" : "Online Now"}
+                  </span>
+                )}
+              </div>
               <p className="text-xs font-medium text-ink-muted/90">{t.title}</p>
             </div>
           </div>

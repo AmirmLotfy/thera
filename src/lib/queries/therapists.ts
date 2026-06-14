@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   collection, doc, getDoc, getDocs, limit, orderBy, query, where,
@@ -112,16 +113,22 @@ export function useTherapistSlotsLive(therapistId: string | undefined | null, lo
       ? [
           where("therapistId", "==", therapistId),
           where("status", "==", "open"),
-          where("startsAt", ">=", minStartsAt),
-          orderBy("startsAt", "asc"),
-          limit(100),
+          limit(150),
         ]
       : [],
     mapDoc: (id, data) => ({ ...(data as AvailabilitySlot), id }),
     enabled: !!therapistId && isFirebaseConfigured && !!db,
     fallback: demo,
   });
+
+  const sortedAndFilteredData = React.useMemo(() => {
+    if (!live.data) return [];
+    return [...live.data]
+      .filter((s) => s.startsAt >= minStartsAt)
+      .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+  }, [live.data, minStartsAt]);
+
   if (!therapistId) return { data: [] as AvailabilitySlot[], loading: false, error: null };
   if (!isFirebaseConfigured || !db) return { data: demo, loading: false, error: null };
-  return live;
+  return { ...live, data: sortedAndFilteredData };
 }

@@ -6,6 +6,7 @@ import { useTherapist, useTherapistSlotsLive } from "@/lib/queries/therapists";
 import { BookTherapistLink } from "@/components/therapists/BookTherapistLink";
 import { openCareThread } from "@/lib/queries/care";
 import { priceLabel } from "@/lib/money";
+import { useMyChildren } from "@/lib/queries/dashboard";
 import { ArrowLeft, Heart, Globe, Award, Clock, Video, MapPin, MessageSquare, CalendarCheck, BadgeCheck, LogIn, Loader2 } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { Locale } from "@/lib/types";
@@ -39,10 +40,23 @@ function slotLabel(iso: string, locale: Locale) {
 function TherapistDetail() {
   const { id } = Route.useParams();
   const { t, locale, dir } = useI18n();
-  const { user } = useAuth();
+  const { user, effectiveRole, profile } = useAuth();
   const reduced = useReducedMotion();
   const { data: therapist, isLoading } = useTherapist(id);
   const { data: slots = [] } = useTherapistSlotsLive(id);
+  const childrenQ = useMyChildren(user?.uid);
+  const nav = useNavigate();
+
+  const isParent = (effectiveRole ?? profile?.role) === "parent";
+  const children = childrenQ.data ?? [];
+  const [selectedChildId, setSelectedChildId] = React.useState<string | null>(null);
+  const [startingInstant, setStartingInstant] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isParent && children.length > 0 && !selectedChildId) {
+      setSelectedChildId(children[0].id);
+    }
+  }, [isParent, children, selectedChildId]);
 
   if (isLoading) {
     return (
@@ -73,6 +87,95 @@ function TherapistDetail() {
   const initials = therapist.displayName.split(" ").slice(0, 2).map((n) => n[0]).join("");
   const currency = therapist.currency || "EGP";
 
+  async function handleStartInstantSession() {
+    if (!user) {
+      void nav({ to: "/auth/login", search: { redirect: `/therapists/${therapist.id}` } });
+      return;
+    }
+    const currentRole = effectiveRole ?? profile?.role ?? "adult";
+    if (currentRole === "therapist" || currentRole === "admin") {
+      toast.error(locale === "ar" ? "المعالجون والمسؤولون لا يمكنهم بدء جلسات." : "Therapists and admins cannot start sessions.");
+      return;
+    }
+
+    setStartingInstant(true);
+    try {
+      const idToken = await user.getIdToken();
+      const res = await fetch("/api/booking/instant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({
+          therapistId: therapist.id,
+          childId: isParent && selectedChildId ? selectedChildId : undefined,
+        }),
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText);
+      }
+      const data = await res.json();
+      if (data.sessionId) {
+        toast.success(locale === "ar" ? "تم بدء الجلسة الفورية بنجاح!" : "Instant session started successfully!");
+        void nav({
+          to: "/dashboard/$role/sessions/$id",
+          params: { role: currentRole, id: data.sessionId },
+        });
+      } else {
+        throw new Error("No sessionId returned");
+      }
+    } catch (err) {
+      console.error("instant booking error", err);
+      toast.error(locale === "ar" ? "تعذّر بدء الجلسة الفورية." : "Could not start instant session.");
+    } finally {
+      setStartingInstant(false);
+    }
+  }
+
+  const instantSessionCard = therapist.availableNow && (
+    <div className="mt-5 rounded-3xl border border-emerald-500/30 bg-emerald-500/5 p-5 text-center shadow-soft relative overflow-hidden">
+      <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider animate-pulse">
+        <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]" />
+        {locale === "ar" ? "أونلاين الآن" : "Online Now"}
+      </div>
+      <p className="mt-2 text-xs text-ink-muted leading-relaxed">
+        {locale === "ar"
+          ? "هذا المعالج متصل حاليًا ومستعد لبدء جلسة فيديو فورية الآن دون حجز مسبق."
+          : "This therapist is online right now and ready for an instant telehealth session immediately."}
+      </p>
+
+      {isParent && children.length > 0 && (
+        <div className="mt-4 text-start">
+          <label className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">
+            {locale === "ar" ? "اختر طفلاً للجلسة" : "Select Child for Session"}
+          </label>
+          <select
+            value={selectedChildId || ""}
+            onChange={(e) => setSelectedChildId(e.target.value || null)}
+            className="mt-1.5 block w-full rounded-2xl border border-border bg-card px-4 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          >
+            {children.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      <button
+        onClick={handleStartInstantSession}
+        disabled={startingInstant}
+        type="button"
+        className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-600 px-6 py-3.5 text-sm font-semibold text-cream shadow-[0_4px_20px_rgba(16,185,129,0.3)] transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+      >
+        {startingInstant ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Video className="h-4 w-4" />
+        )}
+        {locale === "ar" ? "ابدأ الجلسة الفورية الآن" : "Start Instant Session Now"}
+      </button>
+    </div>
+  );
+
   return (
     <SiteShell>
       <section className="mx-auto max-w-6xl px-5 pb-24 pt-hero-under-site-header md:px-8">
@@ -86,7 +189,7 @@ function TherapistDetail() {
             <span className="flex-1 text-ink-muted">
               {locale === "ar" ? "سجّل الدخول لحجز جلسة مع هذا المعالج." : "Sign in to book a session with this therapist."}
             </span>
-            <Link to="/auth/login" search={{ redirect: `/book/${therapist.id}` }} className="rounded-full bg-ink px-4 py-2 text-xs font-semibold text-cream">
+            <Link to="/auth/login" search={{ redirect: `/therapists/${therapist.id}` }} className="rounded-full bg-ink px-4 py-2 text-xs font-semibold text-cream">
               {t.nav.login}
             </Link>
           </div>
@@ -104,6 +207,11 @@ function TherapistDetail() {
                 <span className="absolute start-4 top-4 inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 text-xs font-semibold shadow-sm">
                   <BadgeCheck className="h-3.5 w-3.5 text-mint" />
                   {locale === "ar" ? "معتمد" : "Verified"}
+                </span>
+              )}
+              {therapist.availableNow && (
+                <span className="absolute top-4 end-4 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 shadow-sm border border-card ring-1 ring-emerald-400 animate-pulse" title={locale === "ar" ? "أونلاين الآن" : "Online Now"}>
+                  <span className="h-1.5 w-1.5 rounded-full bg-cream" />
                 </span>
               )}
             </motion.div>
@@ -125,6 +233,8 @@ function TherapistDetail() {
               />
             </div>
 
+            {instantSessionCard}
+
             <BookTherapistLink
               therapistId={therapist.id}
               className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-ink px-6 py-3.5 text-sm font-semibold text-cream shadow-soft transition-transform hover:scale-[1.01]"
@@ -137,9 +247,15 @@ function TherapistDetail() {
           <div className="lg:col-span-8">
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-ink-muted">{t.therapists.role}</p>
             <h1
-              className="hero-title mt-2 font-display text-4xl leading-tight text-ink md:text-6xl"
+              className="hero-title mt-2 font-display text-4xl leading-tight text-ink md:text-6xl flex flex-wrap items-center gap-3"
             >
-              {therapist.displayName}
+              <span>{therapist.displayName}</span>
+              {therapist.availableNow && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider animate-pulse border border-emerald-500/20 shrink-0">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  {locale === "ar" ? "أونلاين الآن" : "Online Now"}
+                </span>
+              )}
             </h1>
             <p className="mt-2 text-lg text-ink-muted">{therapist.title}</p>
             {therapist.rating != null && (
@@ -201,7 +317,7 @@ function TherapistDetail() {
               </div>
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <BookTherapistLink
                 therapistId={therapist.id}
                 className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-semibold text-cream"
@@ -209,6 +325,23 @@ function TherapistDetail() {
                 <CalendarCheck className="h-4 w-4" />
                 {t.therapists.bookCta}
               </BookTherapistLink>
+
+              {therapist.availableNow && (
+                <button
+                  onClick={handleStartInstantSession}
+                  disabled={startingInstant}
+                  type="button"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-600 px-6 py-3 text-sm font-semibold text-cream shadow-[0_4px_16px_rgba(16,185,129,0.25)] transition-all"
+                >
+                  {startingInstant ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Video className="h-4 w-4" />
+                  )}
+                  {locale === "ar" ? "ابدأ جلسة فورية الآن" : "Start Instant Session Now"}
+                </button>
+              )}
+
               <MessageTherapistButton therapistId={therapist.id} />
             </div>
           </div>

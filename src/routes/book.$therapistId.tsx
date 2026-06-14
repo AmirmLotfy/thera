@@ -291,9 +291,14 @@ function BookingWizard() {
 
         <div className="mt-6 flex justify-between">
           <button
-            onClick={() => setStep(Math.max(0, step - 1))}
+            onClick={() => {
+              if (step === 0) {
+                window.history.back();
+              } else {
+                setStep(Math.max(0, step - 1));
+              }
+            }}
             className="flex items-center gap-2 rounded-full border border-border bg-card px-5 py-3 text-sm"
-            disabled={step === 0}
           >
             <ArrowLeft className="h-4 w-4" /> {t.common.back}
           </button>

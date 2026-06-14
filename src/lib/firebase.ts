@@ -5,7 +5,7 @@
 
 import { initializeApp, type FirebaseApp, getApps } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
-import { getFirestore, type Firestore } from "firebase/firestore";
+import { initializeFirestore, type Firestore } from "firebase/firestore";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
 import { trimEnv } from "@/lib/env";
 
@@ -31,7 +31,9 @@ let _storage: FirebaseStorage | null = null;
 if (isFirebaseConfigured && typeof window !== "undefined") {
   app = getApps().length ? getApps()[0] : initializeApp(config as Required<typeof config>);
   _auth = getAuth(app);
-  _db = getFirestore(app);
+  _db = initializeFirestore(app, {
+    experimentalForceLongPolling: true,
+  });
   _storage = getStorage(app);
 }
 

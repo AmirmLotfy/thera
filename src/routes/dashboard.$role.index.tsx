@@ -10,10 +10,15 @@ import {
 import {
   Heart, MessageSquare, CalendarCheck, FileText, Bell, Users, Baby, Stethoscope,
   Flame, Compass, Smile, ClipboardList, Video, ArrowRight, TrendingUp,
-  ShieldCheck, BarChart3, CreditCard, FileCode2, Database, Settings,
+  ShieldCheck, BarChart3, CreditCard, FileCode2, Database, Settings, Activity, Sparkles,
+  PhoneOff, Volume2, VolumeX
 } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import * as React from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { updateDoc, doc } from "firebase/firestore";
+import { db, isFirebaseConfigured } from "@/lib/firebase";
+import { useTherapist } from "@/lib/queries/therapists";
 
 type Role = "adult" | "parent" | "teen" | "therapist" | "admin";
 
@@ -289,6 +294,69 @@ function TeenDashboard() {
   );
 }
 
+function TherapistLiveStatusCard() {
+  const { locale } = useI18n();
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const therapistQ = useTherapist(user?.uid);
+  const [toggling, setToggling] = React.useState(false);
+
+  if (!user) return null;
+  const th = therapistQ.data;
+  const active = !!th?.availableNow;
+
+  async function handleToggle() {
+    if (!isFirebaseConfigured || !db) return;
+    setToggling(true);
+    try {
+      const ref = doc(db, "therapists", user.uid);
+      await updateDoc(ref, {
+        availableNow: !active,
+        updatedAt: new Date().toISOString(),
+      });
+      await qc.invalidateQueries({ queryKey: ["therapist", user.uid] });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setToggling(false);
+    }
+  }
+
+  return (
+    <Tile className="md:col-span-2 overflow-hidden relative">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className={`h-2.5 w-2.5 rounded-full ${active ? "bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" : "bg-ink-muted"}`} />
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+            {locale === "ar" ? "حالة الاتصال الفوري" : "Live Status"}
+          </p>
+        </div>
+        <button
+          onClick={handleToggle}
+          disabled={toggling}
+          type="button"
+          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${active ? "bg-emerald-500" : "bg-muted"}`}
+        >
+          <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out ${active ? "translate-x-5" : "translate-x-0"}`} />
+        </button>
+      </div>
+
+      <div className="mt-4">
+        <h3 className="font-display text-2xl">
+          {active 
+            ? (locale === "ar" ? "أنت أونلاين الآن" : "You are Live Now") 
+            : (locale === "ar" ? "أنت أوفلاين" : "You are Offline")}
+        </h3>
+        <p className="mt-1 text-xs text-ink-muted leading-relaxed">
+          {active 
+            ? (locale === "ar" ? "مستعد لاستقبال الجلسات الفورية من المرضى مباشرة." : "Ready to receive instant session requests immediately.") 
+            : (locale === "ar" ? "اضغط لتفعيل الاتصال الفوري واستقبال المرضى الآن." : "Toggle to go live and accept instant clients right now.")}
+        </p>
+      </div>
+    </Tile>
+  );
+}
+
 function TherapistDashboard() {
   const { t, locale } = useI18n();
   const { user, profile } = useAuth();
@@ -299,6 +367,7 @@ function TherapistDashboard() {
 
   return (
     <SiteShell>
+      <IncomingCallOverlay sessions={sessionsQ.data} />
       <HeroHeader
         eyebrow={t.dash.therapistTitle}
         title={profile?.displayName ? `${locale === "ar" ? "أهلاً دكتور/ة" : "Welcome, Dr."} ${profile.displayName.split(" ").slice(-1)[0]}` : t.dash.therapistTitle}
@@ -310,9 +379,8 @@ function TherapistDashboard() {
         <Tile className="md:col-span-4">
           <UpcomingSessionsCard data={sessionsQ.data} role="therapist" patientDashboardRole="therapist" />
         </Tile>
-        <div className="md:col-span-2">
-          <BigCtaDashboard role={role} segment="availability" title={t.dash.availability} subtitle={t.dash.availabilitySub} Icon={CalendarCheck} tone="lavender" />
-        </div>
+        <TherapistLiveStatusCard />
+        
         <Tile className="md:col-span-3">
           <NotificationsPreview data={notifsQ.data} role="therapist" />
         </Tile>
@@ -320,13 +388,13 @@ function TherapistDashboard() {
           <ReportsPreview data={reportsQ.data} role="therapist" />
         </Tile>
         <div className="md:col-span-2">
+          <BigCtaDashboard role={role} segment="availability" title={t.dash.availability} subtitle={t.dash.availabilitySub} Icon={CalendarCheck} tone="lavender" />
+        </div>
+        <div className="md:col-span-2">
           <BigCtaDashboard role={role} segment="bookings" title={t.dash.bookings} subtitle={t.dash.bookingsSub} Icon={ClipboardList} />
         </div>
         <div className="md:col-span-2">
           <BigCtaDashboard role={role} segment="reports" title={t.dash.submitReport} subtitle={t.dash.submitReportSub} Icon={FileText} tone="mint" />
-        </div>
-        <div className="md:col-span-2">
-          <BigCtaDashboard role={role} segment="chat" title={t.dash.talkAI} subtitle={t.dash.talkAISub} Icon={MessageSquare} tone="lavender" />
         </div>
       </section>
     </SiteShell>
@@ -391,7 +459,7 @@ function UpcomingSessionsCard({ data, role, patientDashboardRole }: {
           {list.map((s) => (
             <li key={s.id} className="flex items-center justify-between py-3">
               <div>
-                <p className="font-semibold">{fmt.format(new Date(s.startsAt))}</p>
+                <p className="font-semibold">{fmt.format(toDate(s.startsAt))}</p>
                 <p className="text-xs text-ink-muted">
                   {role === "therapist"
                     ? `${t.dash.clientLabel} · ${s.patientUid.slice(0, 6)}`
@@ -489,7 +557,50 @@ function NotificationsPreview({ data, role }: { data?: { id: string; title: stri
 
 function YourTherapistsCard({ data, role, locale }: { data?: PastTherapist[] | null; role: "adult" | "parent" | "teen"; locale: "en" | "ar" }) {
   const list = data ?? [];
-  if (list.length === 0) return null;
+  
+  if (list.length === 0) {
+    return (
+      <div className="flex flex-col">
+        <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+          {locale === "ar" ? "معالجوك" : "Your therapists"}
+        </p>
+        <div className="mt-4 flex flex-col items-center justify-center rounded-3xl border border-dashed border-border/80 bg-cream/30 p-8 text-center sm:p-12">
+          <div className="relative flex h-20 w-24 items-center justify-center">
+            {/* Pulsing glow background */}
+            <div className="absolute h-16 w-16 rounded-full bg-lavender/10 animate-pulse duration-1000" />
+            
+            {/* Compass in background */}
+            <Compass className="h-12 w-12 text-lavender/60 transition-transform duration-700 hover:rotate-45" />
+            
+            {/* Heart popping up in corner */}
+            <div className="absolute bottom-1 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-cream shadow-sm">
+              <Heart className="h-4 w-4 fill-blush text-blush" />
+            </div>
+          </div>
+          
+          <h3 className="mt-4 text-base font-bold text-ink">
+            {locale === "ar" ? "ابدأ رحلة التعافي النفسي" : "Start Your Healing Journey"}
+          </h3>
+          
+          <p className="mt-1 max-w-sm text-xs text-ink-muted leading-relaxed">
+            {locale === "ar" 
+              ? "تواصل مع معالجين نفسيين مرخصين ومتعاطفين مخصصين لرحلتك. جلستك الأولى في انتظارك." 
+              : "Connect with certified, compassionate therapists dedicated to your journey. Your first session is waiting."}
+          </p>
+          
+          <Link
+            to="/dashboard/$role/find"
+            params={{ role }}
+            className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-xs font-semibold text-cream transition-all duration-300 hover:scale-105 hover:bg-ink-muted active:scale-95 shadow-md hover:shadow-lg"
+          >
+            <span>{locale === "ar" ? "ابحث عن معالجك المثالي" : "Find Your Perfect Therapist"}</span>
+            <ArrowRight className={`h-3 w-3 ${locale === "ar" ? "rotate-180" : ""}`} />
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
@@ -533,12 +644,162 @@ function ReportsPreview({ data, role }: { data?: { id: string; summary?: string;
         <ul className="mt-3 space-y-3">
           {list.map((r) => (
             <li key={r.id} className="rounded-2xl bg-cream p-3">
-              <div className="flex items-center gap-2 text-xs text-ink-muted"><FileText className="h-3 w-3" /> {locale === "ar" ? "ملخص" : "Summary"}</div>
+               <div className="flex items-center gap-2 text-xs text-ink-muted"><FileText className="h-3 w-3" /> {locale === "ar" ? "ملخص" : "Summary"}</div>
               <p className="mt-1 text-sm line-clamp-3">{r.summary ?? (locale === "ar" ? "ملخص مفصل قيد التحضير..." : "Detailed summary being prepared…")}</p>
             </li>
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+function toDate(val: any): Date {
+  if (!val) return new Date();
+  if (typeof val === "string") return new Date(val);
+  if (val instanceof Date) return val;
+  if (typeof val.toDate === "function") return val.toDate();
+  if (typeof val.toMillis === "function") return new Date(val.toMillis());
+  if (typeof val.seconds === "number") return new Date(val.seconds * 1000);
+  return new Date(val);
+}
+
+function playRingtone() {
+  if (typeof window === "undefined") return () => {};
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return () => {};
+    const ctx = new AudioCtx();
+    
+    const interval = setInterval(() => {
+      if (ctx.state === "suspended") {
+        ctx.resume().catch(() => {});
+      }
+      const now = ctx.currentTime;
+      const frequencies = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+      
+      frequencies.forEach((f, index) => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = "sine";
+        o.frequency.setValueAtTime(f, now + index * 0.08);
+        g.gain.setValueAtTime(0, now + index * 0.08);
+        g.gain.linearRampToValueAtTime(0.15, now + index * 0.08 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + index * 0.08 + 0.4);
+        
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.start(now + index * 0.08);
+        o.stop(now + index * 0.08 + 0.4);
+      });
+    }, 1500);
+
+    return () => {
+      clearInterval(interval);
+      ctx.close().catch(() => {});
+    };
+  } catch (err) {
+    console.warn("Ringtone error", err);
+    return () => {};
+  }
+}
+
+function IncomingCallOverlay({ sessions }: { sessions: any[] | null }) {
+  const { locale } = useI18n();
+  const [ignoredIds, setIgnoredIds] = React.useState<string[]>([]);
+  const [isMuted, setIsMuted] = React.useState(false);
+
+  const incomingCall = React.useMemo(() => {
+    if (!sessions) return null;
+    const nowMs = Date.now();
+    return sessions.find((s) => {
+      if (s.status !== "upcoming") return false;
+      if (ignoredIds.includes(s.id)) return false;
+      
+      const start = toDate(s.startsAt).getTime();
+      const diffMinutes = (nowMs - start) / 60000;
+      return diffMinutes >= -1 && diffMinutes <= 5;
+    });
+  }, [sessions, ignoredIds]);
+
+  React.useEffect(() => {
+    if (!incomingCall || isMuted) return;
+    const stopAudio = playRingtone();
+    return () => {
+      stopAudio();
+    };
+  }, [incomingCall, isMuted]);
+
+  if (!incomingCall) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-ink/95 p-6 text-cream text-center backdrop-blur-md">
+      <div className="relative flex items-center justify-center h-48 w-48 mb-8">
+        <motion.div
+          animate={{ scale: [1, 2.2], opacity: [0.5, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+          className="absolute h-32 w-32 rounded-full border-2 border-emerald-500/40"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.8], opacity: [0.7, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeOut", delay: 0.6 }}
+          className="absolute h-32 w-32 rounded-full border-2 border-emerald-500/30"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.4], opacity: [0.9, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeOut", delay: 1.2 }}
+          className="absolute h-32 w-32 rounded-full border border-emerald-500/20"
+        />
+        <div className="relative z-10 flex h-28 w-28 items-center justify-center rounded-full bg-emerald-500 text-cream shadow-[0_0_30px_rgba(16,185,129,0.5)] animate-pulse">
+          <Video className="h-12 w-12 animate-[bounce_1.5s_infinite]" />
+        </div>
+      </div>
+
+      <div className="max-w-md">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-400 uppercase tracking-wider animate-pulse border border-emerald-500/20 mb-3">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          {locale === "ar" ? "اتصال فوري وارد" : "Incoming Instant Session"}
+        </span>
+        <h2 className="font-display text-3xl md:text-4xl font-bold leading-tight">
+          {locale === "ar" ? "جلسة فورية جديدة!" : "Incoming Session Call!"}
+        </h2>
+        <p className="mt-2 text-ink-muted text-sm md:text-base">
+          {incomingCall.childName 
+            ? (locale === "ar" ? `الجلسة من أجل الطفل: ${incomingCall.childName}` : `Session requested for: ${incomingCall.childName}`)
+            : (incomingCall.patientName 
+                ? (locale === "ar" ? `المريض: ${incomingCall.patientName}` : `Patient: ${incomingCall.patientName}`)
+                : (locale === "ar" ? "طلب جلسة فورية من مريض مجهول الاسم" : "Requested by patient"))}
+        </p>
+      </div>
+
+      <div className="mt-10 flex flex-col sm:flex-row items-center gap-4 w-full max-w-sm">
+        <Link
+          to="/dashboard/$role/sessions/$id"
+          params={{ role: "therapist", id: incomingCall.id }}
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-500 px-8 py-4 font-semibold text-cream shadow-[0_4px_20px_rgba(16,185,129,0.3)] transition-transform hover:scale-[1.02] active:scale-95"
+        >
+          <Video className="h-5 w-5" />
+          {locale === "ar" ? "دخول الجلسة الفورية الآن" : "Join Instant Session Now"}
+        </Link>
+        
+        <div className="flex gap-3 w-full">
+          <button
+            onClick={() => setIsMuted(!isMuted)}
+            className="flex-1 flex items-center justify-center gap-2 rounded-full border border-border/40 bg-card/10 px-4 py-3 text-sm font-semibold hover:bg-card/20 transition-colors"
+          >
+            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            {isMuted ? (locale === "ar" ? "تشغيل الصوت" : "Unmute") : (locale === "ar" ? "كتم الصوت" : "Mute")}
+          </button>
+
+          <button
+            onClick={() => setIgnoredIds([...ignoredIds, incomingCall.id])}
+            className="flex-1 flex items-center justify-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 text-red-400 px-4 py-3 text-sm font-semibold hover:bg-red-500/20 transition-colors"
+          >
+            <PhoneOff className="h-4 w-4" />
+            {locale === "ar" ? "تجاهل" : "Ignore"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -10,6 +10,11 @@ export const Route = createFileRoute("/auth")({
 function AuthLayout() {
   const { t } = useI18n();
   const loc = useLocation();
+  const isRolePage = loc.pathname === "/auth/role" || loc.pathname === "/auth/role/";
+  if (isRolePage) {
+    return <Outlet />;
+  }
+
   const tabs = [
     { to: "/auth/login", label: t.nav.login },
     { to: "/auth/signup", label: t.nav.signup },

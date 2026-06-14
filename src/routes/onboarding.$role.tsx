@@ -192,7 +192,7 @@ function OnboardingPage() {
         await nav({ to: "/dashboard/$role/pending", params: { role: "therapist" } });
       } else {
         const bookReturn = peekPostLoginRedirect();
-        if (bookReturn?.startsWith("/book/")) {
+        if (bookReturn && (bookReturn.startsWith("/book/") || bookReturn.startsWith("/therapists/") || bookReturn.startsWith("/checkout/"))) {
           consumePostLoginRedirect();
           window.location.assign(bookReturn);
           return;
@@ -508,9 +508,14 @@ function OnboardingPage() {
           <div className="flex items-center justify-between pt-2">
             <button
               type="button"
-              onClick={() => setStep((s) => Math.max(0, s - 1))}
-              disabled={step === 0}
-              className="rounded-full border border-border bg-card px-4 py-2 text-sm disabled:opacity-50"
+              onClick={() => {
+                if (step === 0) {
+                  window.history.back();
+                } else {
+                  setStep((s) => Math.max(0, s - 1));
+                }
+              }}
+              className="rounded-full border border-border bg-card px-4 py-2 text-sm"
             >
               {t.common.back}
             </button>

@@ -112,14 +112,28 @@ export function useMyBookingsLive(uid: string | undefined | null, role: "patient
   const live = useFirestoreLive<Booking>({
     queryKey: ["bookingsLive", uid, role],
     pathSegments: ["bookings"],
-    constraints: uid ? [where(field, "==", uid), orderBy("createdAt", "desc"), limit(50)] : [],
+    constraints: uid ? [where(field, "==", uid), limit(50)] : [],
     mapDoc: (id, data) => ({ ...(data as Booking), id }),
     enabled: !!uid && !DEMO_ENABLED(),
     fallback: demo,
   });
+
+  const sortedData = React.useMemo(() => {
+    if (!live.data) return [];
+    return [...live.data].sort((a, b) => {
+      const t1 = a.createdAt && typeof a.createdAt === "object" && "toMillis" in a.createdAt
+        ? (a.createdAt as { toMillis: () => number }).toMillis()
+        : new Date(a.createdAt ?? 0).getTime();
+      const t2 = b.createdAt && typeof b.createdAt === "object" && "toMillis" in b.createdAt
+        ? (b.createdAt as { toMillis: () => number }).toMillis()
+        : new Date(b.createdAt ?? 0).getTime();
+      return t2 - t1;
+    });
+  }, [live.data]);
+
   if (!uid) return { data: [] as Booking[], loading: false, error: null };
   if (DEMO_ENABLED()) return { data: demo, loading: false, error: null };
-  return live;
+  return { ...live, data: sortedData };
 }
 
 export function useUpcomingSessionsLive(uid: string | undefined | null, role: "patient" | "therapist") {
@@ -128,14 +142,24 @@ export function useUpcomingSessionsLive(uid: string | undefined | null, role: "p
   const live = useFirestoreLive<SessionDoc>({
     queryKey: ["sessionsLive", uid, role],
     pathSegments: ["sessions"],
-    constraints: uid ? [where(field, "==", uid), orderBy("startsAt", "asc"), limit(8)] : [],
+    constraints: uid ? [where(field, "==", uid), limit(8)] : [],
     mapDoc: (id, data) => ({ ...(data as SessionDoc), id }),
     enabled: !!uid && !DEMO_ENABLED(),
     fallback: demo,
   });
+
+  const sortedData = React.useMemo(() => {
+    if (!live.data) return [];
+    return [...live.data].sort((a, b) => {
+      const t1 = new Date(a.startsAt ?? 0).getTime();
+      const t2 = new Date(b.startsAt ?? 0).getTime();
+      return t1 - t2;
+    });
+  }, [live.data]);
+
   if (!uid) return { data: [] as SessionDoc[], loading: false, error: null };
   if (DEMO_ENABLED()) return { data: demo, loading: false, error: null };
-  return live;
+  return { ...live, data: sortedData };
 }
 
 export type PastTherapist = {
@@ -159,12 +183,22 @@ export function usePastTherapists(uid: string | undefined | null) {
         ref,
         where("patientUid", "==", uid),
         where("status", "in", ["confirmed", "completed"]),
-        orderBy("createdAt", "desc"),
         limit(40),
       );
       const snap = await getDocs(q);
+      const docs = [...snap.docs].sort((a, b) => {
+        const aData = a.data() as Booking;
+        const bData = b.data() as Booking;
+        const t1 = aData.createdAt && typeof aData.createdAt === "object" && "toMillis" in aData.createdAt
+          ? (aData.createdAt as { toMillis: () => number }).toMillis()
+          : new Date(aData.createdAt ?? 0).getTime();
+        const t2 = bData.createdAt && typeof bData.createdAt === "object" && "toMillis" in bData.createdAt
+          ? (bData.createdAt as { toMillis: () => number }).toMillis()
+          : new Date(bData.createdAt ?? 0).getTime();
+        return t2 - t1;
+      });
       const byTherapist = new Map<string, PastTherapist>();
-      for (const d of snap.docs) {
+      for (const d of docs) {
         const b = d.data() as Booking;
         if (!b.therapistId || byTherapist.has(b.therapistId)) continue;
         const created = typeof b.createdAt === "object" && b.createdAt && "toDate" in (b.createdAt as object)
