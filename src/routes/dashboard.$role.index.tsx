@@ -24,6 +24,14 @@ type Role = "adult" | "parent" | "teen" | "therapist" | "admin";
 
 type DashboardSubpath = "chat" | "mood" | "vibe" | "availability" | "bookings" | "reports" | "find";
 
+function useMounted() {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+  return mounted;
+}
+
 export const Route = createFileRoute("/dashboard/$role/")({
   head: ({ params }) => ({ meta: [{ title: `${params.role} · Thera` }] }),
   component: RoleHome,
@@ -446,6 +454,7 @@ function UpcomingSessionsCard({ data, role, patientDashboardRole }: {
   patientDashboardRole?: "adult" | "parent" | "teen" | "therapist";
 }) {
   const { t, locale } = useI18n();
+  const mounted = useMounted();
   const fmt = new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-US", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   const list = (data ?? []).slice(0, 3);
   const sessionRoleParam = role === "therapist" ? "therapist" : (patientDashboardRole ?? "adult");
@@ -459,7 +468,7 @@ function UpcomingSessionsCard({ data, role, patientDashboardRole }: {
           {list.map((s) => (
             <li key={s.id} className="flex items-center justify-between py-3">
               <div>
-                <p className="font-semibold">{fmt.format(toDate(s.startsAt))}</p>
+                <p className="font-semibold">{mounted ? fmt.format(toDate(s.startsAt)) : ""}</p>
                 <p className="text-xs text-ink-muted">
                   {role === "therapist"
                     ? `${t.dash.clientLabel} · ${s.patientUid.slice(0, 6)}`
@@ -557,6 +566,7 @@ function NotificationsPreview({ data, role }: { data?: { id: string; title: stri
 
 function YourTherapistsCard({ data, role, locale }: { data?: PastTherapist[] | null; role: "adult" | "parent" | "teen"; locale: "en" | "ar" }) {
   const list = data ?? [];
+  const mounted = useMounted();
   
   if (list.length === 0) {
     return (
@@ -612,7 +622,7 @@ function YourTherapistsCard({ data, role, locale }: { data?: PastTherapist[] | n
             <div>
               <p className="font-semibold">{item.therapist?.displayName ?? item.therapistId}</p>
               <p className="text-xs text-ink-muted">
-                {new Date(item.lastBookingAt).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US")}
+                {mounted ? new Date(item.lastBookingAt).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US") : ""}
               </p>
             </div>
             <Link

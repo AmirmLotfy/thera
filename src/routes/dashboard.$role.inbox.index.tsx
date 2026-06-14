@@ -10,6 +10,14 @@ import { Loader2, MessageSquare } from "lucide-react";
 import * as React from "react";
 import type { TherapistDoc, UserDoc } from "@/lib/types";
 
+function useMounted() {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+  return mounted;
+}
+
 export const Route = createFileRoute("/dashboard/$role/inbox/")({
   head: () => ({ meta: [{ title: "Inbox — Thera" }] }),
   component: () => (
@@ -22,6 +30,7 @@ export const Route = createFileRoute("/dashboard/$role/inbox/")({
 function InboxListPage() {
   const { locale } = useI18n();
   const { user, effectiveRole } = useAuth();
+  const mounted = useMounted();
   const { role } = useParams({ from: "/dashboard/$role/inbox/" });
   const queryRole: "patient" | "therapist" = effectiveRole === "therapist" ? "therapist" : "patient";
   const { data: threads = [], loading } = useCareThreadsLive(user?.uid, queryRole);
@@ -90,7 +99,7 @@ function InboxListPage() {
                   <p className="font-semibold">{labels[t.id] ?? (locale === "ar" ? "محادثة" : "Conversation")}</p>
                   {t.lastMessageAt ? (
                     <span className="text-xs text-ink-muted">
-                      {new Date(String(t.lastMessageAt)).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US")}
+                      {mounted ? new Date(String(t.lastMessageAt)).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US") : ""}
                     </span>
                   ) : null}
                 </div>
