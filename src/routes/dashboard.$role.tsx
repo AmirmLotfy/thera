@@ -18,6 +18,11 @@ function DashboardRoleLayout() {
   const nav = useNavigate();
   const location = useLocation();
 
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   React.useEffect(() => {
     if (!["adult", "parent", "teen", "therapist", "admin"].includes(role)) {
       void nav({ to: "/dashboard/$role", params: { role: "adult" } });
@@ -26,6 +31,14 @@ function DashboardRoleLayout() {
 
   const path = location.pathname;
   const isTherapistPending = /\/dashboard\/[^/]+\/pending\/?$/.test(path);
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-[#FFF6E9] flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-ink border-t-transparent" />
+      </div>
+    );
+  }
 
   if (isTherapistPending) {
     return <Outlet />;
