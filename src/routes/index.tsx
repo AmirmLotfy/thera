@@ -55,7 +55,7 @@ function Hero() {
             className={`hero-title hero-title-xl mt-6 text-balance text-[3.25rem] md:text-[5.5rem] ${
               dir === "rtl"
                 ? "font-display leading-[1.25] md:leading-[1.15] tracking-normal space-y-1"
-                : "font-sans font-extrabold leading-[1.15] md:leading-[1.1] tracking-tight"
+                : "font-display font-medium leading-[1.15] md:leading-[1.08] tracking-tight"
             }`}
           >
             <motion.span
