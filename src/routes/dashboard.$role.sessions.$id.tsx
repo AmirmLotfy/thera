@@ -78,7 +78,14 @@ function SessionRoom() {
         setChat((prev) => [...prev, { from: event.fromId ?? "guest", text: String(payload.text), at: Date.now() }]);
       }
     });
-    await frame.join({ url: tokenInfo.roomUrl, token: tokenInfo.token || undefined, userName: user?.displayName ?? "Client" });
+    const joinOpts: { url: string; userName: string; token?: string } = {
+      url: tokenInfo.roomUrl,
+      userName: user?.displayName ?? "Client",
+    };
+    if (tokenInfo.token) {
+      joinOpts.token = tokenInfo.token;
+    }
+    await frame.join(joinOpts);
   }
 
   async function leave() {
@@ -120,8 +127,13 @@ function SessionRoom() {
   }
   function sendChat() {
     const text = chatInput.trim(); if (!text) return;
+    if (phase !== "live" || !callRef.current) return;
     setChat((p) => [...p, { from: "me", text, at: Date.now() }]);
-    callRef.current?.sendAppMessage({ type: "chat", text }, "*");
+    try {
+      callRef.current.sendAppMessage({ type: "chat", text }, "*");
+    } catch (err) {
+      console.error("sendAppMessage error:", err);
+    }
     setChatInput("");
   }
 
