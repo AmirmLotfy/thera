@@ -7,7 +7,7 @@ import { useTherapistSessionsIndex } from "@/lib/queries/dashboard";
 import { Calendar, Video, Loader2 } from "lucide-react";
 import * as React from "react";
 
-export const Route = createFileRoute("/dashboard/$role/sessions")({
+export const Route = createFileRoute("/dashboard/$role/sessions/")({
   head: () => ({ meta: [{ title: "Sessions — Thera" }] }),
   component: () => (
     <RouteGuard requireAuth requireRole="therapist">

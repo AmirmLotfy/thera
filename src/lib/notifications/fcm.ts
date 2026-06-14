@@ -1,4 +1,4 @@
-import { firebaseApp, isFirebaseConfigured } from "@/lib/firebase";
+import { firebaseApp, isFirebaseConfigured, db } from "@/lib/firebase";
 import { trimEnv } from "@/lib/env";
 import type { User } from "firebase/auth";
 
@@ -31,8 +31,8 @@ export async function registerFcm(user: User): Promise<string | null> {
     const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
     const token = await messagingMod.getToken(messaging, { vapidKey, serviceWorkerRegistration: registration });
     if (!token) return null;
-    const { doc, setDoc, serverTimestamp, getFirestore } = firestoreMod;
-    const db = getFirestore(firebaseApp);
+    const { doc, setDoc, serverTimestamp } = firestoreMod;
+    if (!db) return null;
     await setDoc(doc(db, `users/${user.uid}/fcmTokens/${token}`), {
       token,
       platform: "web",

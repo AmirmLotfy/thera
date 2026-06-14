@@ -51,14 +51,12 @@ import { Route as DashboardAdminContentRouteImport } from './routes/dashboard.ad
 import { Route as DashboardAdminAnalyticsRouteImport } from './routes/dashboard.admin.analytics'
 import { Route as DashboardAdminAiLogsRouteImport } from './routes/dashboard.admin.ai-logs'
 import { Route as DashboardRoleVibeRouteImport } from './routes/dashboard.$role.vibe'
-import { Route as DashboardRoleSessionsRouteImport } from './routes/dashboard.$role.sessions'
 import { Route as DashboardRoleReportsRouteImport } from './routes/dashboard.$role.reports'
 import { Route as DashboardRoleProfileRouteImport } from './routes/dashboard.$role.profile'
 import { Route as DashboardRolePendingRouteImport } from './routes/dashboard.$role.pending'
 import { Route as DashboardRoleNotificationsRouteImport } from './routes/dashboard.$role.notifications'
 import { Route as DashboardRoleMoodRouteImport } from './routes/dashboard.$role.mood'
 import { Route as DashboardRoleInstapayRouteImport } from './routes/dashboard.$role.instapay'
-import { Route as DashboardRoleInboxRouteImport } from './routes/dashboard.$role.inbox'
 import { Route as DashboardRoleFindRouteImport } from './routes/dashboard.$role.find'
 import { Route as DashboardRoleChildrenRouteImport } from './routes/dashboard.$role.children'
 import { Route as DashboardRoleChatRouteImport } from './routes/dashboard.$role.chat'
@@ -80,6 +78,8 @@ import { Route as ApiAiIntakeRouteImport } from './routes/api/ai/intake'
 import { Route as ApiAiCrisisCheckRouteImport } from './routes/api/ai/crisis-check'
 import { Route as ApiAiChatRouteImport } from './routes/api/ai/chat'
 import { Route as ApiAdminApproveTherapistRouteImport } from './routes/api/admin/approve-therapist'
+import { Route as DashboardRoleSessionsIndexRouteImport } from './routes/dashboard.$role.sessions.index'
+import { Route as DashboardRoleInboxIndexRouteImport } from './routes/dashboard.$role.inbox.index'
 import { Route as DashboardRoleSessionsIdRouteImport } from './routes/dashboard.$role.sessions.$id'
 import { Route as DashboardRoleInboxThreadIdRouteImport } from './routes/dashboard.$role.inbox.$threadId'
 import { Route as ApiSessionsIdTokenRouteImport } from './routes/api/sessions.$id.token'
@@ -298,11 +298,6 @@ const DashboardRoleVibeRoute = DashboardRoleVibeRouteImport.update({
   path: '/vibe',
   getParentRoute: () => DashboardRoleRoute,
 } as any)
-const DashboardRoleSessionsRoute = DashboardRoleSessionsRouteImport.update({
-  id: '/sessions',
-  path: '/sessions',
-  getParentRoute: () => DashboardRoleRoute,
-} as any)
 const DashboardRoleReportsRoute = DashboardRoleReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
@@ -332,11 +327,6 @@ const DashboardRoleMoodRoute = DashboardRoleMoodRouteImport.update({
 const DashboardRoleInstapayRoute = DashboardRoleInstapayRouteImport.update({
   id: '/instapay',
   path: '/instapay',
-  getParentRoute: () => DashboardRoleRoute,
-} as any)
-const DashboardRoleInboxRoute = DashboardRoleInboxRouteImport.update({
-  id: '/inbox',
-  path: '/inbox',
   getParentRoute: () => DashboardRoleRoute,
 } as any)
 const DashboardRoleFindRoute = DashboardRoleFindRouteImport.update({
@@ -447,16 +437,27 @@ const ApiAdminApproveTherapistRoute =
     path: '/api/admin/approve-therapist',
     getParentRoute: () => rootRouteImport,
   } as any)
+const DashboardRoleSessionsIndexRoute =
+  DashboardRoleSessionsIndexRouteImport.update({
+    id: '/sessions/',
+    path: '/sessions/',
+    getParentRoute: () => DashboardRoleRoute,
+  } as any)
+const DashboardRoleInboxIndexRoute = DashboardRoleInboxIndexRouteImport.update({
+  id: '/inbox/',
+  path: '/inbox/',
+  getParentRoute: () => DashboardRoleRoute,
+} as any)
 const DashboardRoleSessionsIdRoute = DashboardRoleSessionsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => DashboardRoleSessionsRoute,
+  id: '/sessions/$id',
+  path: '/sessions/$id',
+  getParentRoute: () => DashboardRoleRoute,
 } as any)
 const DashboardRoleInboxThreadIdRoute =
   DashboardRoleInboxThreadIdRouteImport.update({
-    id: '/$threadId',
-    path: '/$threadId',
-    getParentRoute: () => DashboardRoleInboxRoute,
+    id: '/inbox/$threadId',
+    path: '/inbox/$threadId',
+    getParentRoute: () => DashboardRoleRoute,
   } as any)
 const ApiSessionsIdTokenRoute = ApiSessionsIdTokenRouteImport.update({
   id: '/api/sessions/$id/token',
@@ -539,14 +540,12 @@ export interface FileRoutesByFullPath {
   '/dashboard/$role/chat': typeof DashboardRoleChatRoute
   '/dashboard/$role/children': typeof DashboardRoleChildrenRoute
   '/dashboard/$role/find': typeof DashboardRoleFindRoute
-  '/dashboard/$role/inbox': typeof DashboardRoleInboxRouteWithChildren
   '/dashboard/$role/instapay': typeof DashboardRoleInstapayRoute
   '/dashboard/$role/mood': typeof DashboardRoleMoodRoute
   '/dashboard/$role/notifications': typeof DashboardRoleNotificationsRoute
   '/dashboard/$role/pending': typeof DashboardRolePendingRoute
   '/dashboard/$role/profile': typeof DashboardRoleProfileRoute
   '/dashboard/$role/reports': typeof DashboardRoleReportsRoute
-  '/dashboard/$role/sessions': typeof DashboardRoleSessionsRouteWithChildren
   '/dashboard/$role/vibe': typeof DashboardRoleVibeRoute
   '/dashboard/admin/ai-logs': typeof DashboardAdminAiLogsRoute
   '/dashboard/admin/analytics': typeof DashboardAdminAnalyticsRoute
@@ -563,6 +562,8 @@ export interface FileRoutesByFullPath {
   '/api/sessions/$id/token': typeof ApiSessionsIdTokenRoute
   '/dashboard/$role/inbox/$threadId': typeof DashboardRoleInboxThreadIdRoute
   '/dashboard/$role/sessions/$id': typeof DashboardRoleSessionsIdRoute
+  '/dashboard/$role/inbox/': typeof DashboardRoleInboxIndexRoute
+  '/dashboard/$role/sessions/': typeof DashboardRoleSessionsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -616,14 +617,12 @@ export interface FileRoutesByTo {
   '/dashboard/$role/chat': typeof DashboardRoleChatRoute
   '/dashboard/$role/children': typeof DashboardRoleChildrenRoute
   '/dashboard/$role/find': typeof DashboardRoleFindRoute
-  '/dashboard/$role/inbox': typeof DashboardRoleInboxRouteWithChildren
   '/dashboard/$role/instapay': typeof DashboardRoleInstapayRoute
   '/dashboard/$role/mood': typeof DashboardRoleMoodRoute
   '/dashboard/$role/notifications': typeof DashboardRoleNotificationsRoute
   '/dashboard/$role/pending': typeof DashboardRolePendingRoute
   '/dashboard/$role/profile': typeof DashboardRoleProfileRoute
   '/dashboard/$role/reports': typeof DashboardRoleReportsRoute
-  '/dashboard/$role/sessions': typeof DashboardRoleSessionsRouteWithChildren
   '/dashboard/$role/vibe': typeof DashboardRoleVibeRoute
   '/dashboard/admin/ai-logs': typeof DashboardAdminAiLogsRoute
   '/dashboard/admin/analytics': typeof DashboardAdminAnalyticsRoute
@@ -640,6 +639,8 @@ export interface FileRoutesByTo {
   '/api/sessions/$id/token': typeof ApiSessionsIdTokenRoute
   '/dashboard/$role/inbox/$threadId': typeof DashboardRoleInboxThreadIdRoute
   '/dashboard/$role/sessions/$id': typeof DashboardRoleSessionsIdRoute
+  '/dashboard/$role/inbox': typeof DashboardRoleInboxIndexRoute
+  '/dashboard/$role/sessions': typeof DashboardRoleSessionsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -697,14 +698,12 @@ export interface FileRoutesById {
   '/dashboard/$role/chat': typeof DashboardRoleChatRoute
   '/dashboard/$role/children': typeof DashboardRoleChildrenRoute
   '/dashboard/$role/find': typeof DashboardRoleFindRoute
-  '/dashboard/$role/inbox': typeof DashboardRoleInboxRouteWithChildren
   '/dashboard/$role/instapay': typeof DashboardRoleInstapayRoute
   '/dashboard/$role/mood': typeof DashboardRoleMoodRoute
   '/dashboard/$role/notifications': typeof DashboardRoleNotificationsRoute
   '/dashboard/$role/pending': typeof DashboardRolePendingRoute
   '/dashboard/$role/profile': typeof DashboardRoleProfileRoute
   '/dashboard/$role/reports': typeof DashboardRoleReportsRoute
-  '/dashboard/$role/sessions': typeof DashboardRoleSessionsRouteWithChildren
   '/dashboard/$role/vibe': typeof DashboardRoleVibeRoute
   '/dashboard/admin/ai-logs': typeof DashboardAdminAiLogsRoute
   '/dashboard/admin/analytics': typeof DashboardAdminAnalyticsRoute
@@ -721,6 +720,8 @@ export interface FileRoutesById {
   '/api/sessions/$id/token': typeof ApiSessionsIdTokenRoute
   '/dashboard/$role/inbox/$threadId': typeof DashboardRoleInboxThreadIdRoute
   '/dashboard/$role/sessions/$id': typeof DashboardRoleSessionsIdRoute
+  '/dashboard/$role/inbox/': typeof DashboardRoleInboxIndexRoute
+  '/dashboard/$role/sessions/': typeof DashboardRoleSessionsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -779,14 +780,12 @@ export interface FileRouteTypes {
     | '/dashboard/$role/chat'
     | '/dashboard/$role/children'
     | '/dashboard/$role/find'
-    | '/dashboard/$role/inbox'
     | '/dashboard/$role/instapay'
     | '/dashboard/$role/mood'
     | '/dashboard/$role/notifications'
     | '/dashboard/$role/pending'
     | '/dashboard/$role/profile'
     | '/dashboard/$role/reports'
-    | '/dashboard/$role/sessions'
     | '/dashboard/$role/vibe'
     | '/dashboard/admin/ai-logs'
     | '/dashboard/admin/analytics'
@@ -803,6 +802,8 @@ export interface FileRouteTypes {
     | '/api/sessions/$id/token'
     | '/dashboard/$role/inbox/$threadId'
     | '/dashboard/$role/sessions/$id'
+    | '/dashboard/$role/inbox/'
+    | '/dashboard/$role/sessions/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -856,14 +857,12 @@ export interface FileRouteTypes {
     | '/dashboard/$role/chat'
     | '/dashboard/$role/children'
     | '/dashboard/$role/find'
-    | '/dashboard/$role/inbox'
     | '/dashboard/$role/instapay'
     | '/dashboard/$role/mood'
     | '/dashboard/$role/notifications'
     | '/dashboard/$role/pending'
     | '/dashboard/$role/profile'
     | '/dashboard/$role/reports'
-    | '/dashboard/$role/sessions'
     | '/dashboard/$role/vibe'
     | '/dashboard/admin/ai-logs'
     | '/dashboard/admin/analytics'
@@ -880,6 +879,8 @@ export interface FileRouteTypes {
     | '/api/sessions/$id/token'
     | '/dashboard/$role/inbox/$threadId'
     | '/dashboard/$role/sessions/$id'
+    | '/dashboard/$role/inbox'
+    | '/dashboard/$role/sessions'
   id:
     | '__root__'
     | '/'
@@ -936,14 +937,12 @@ export interface FileRouteTypes {
     | '/dashboard/$role/chat'
     | '/dashboard/$role/children'
     | '/dashboard/$role/find'
-    | '/dashboard/$role/inbox'
     | '/dashboard/$role/instapay'
     | '/dashboard/$role/mood'
     | '/dashboard/$role/notifications'
     | '/dashboard/$role/pending'
     | '/dashboard/$role/profile'
     | '/dashboard/$role/reports'
-    | '/dashboard/$role/sessions'
     | '/dashboard/$role/vibe'
     | '/dashboard/admin/ai-logs'
     | '/dashboard/admin/analytics'
@@ -960,6 +959,8 @@ export interface FileRouteTypes {
     | '/api/sessions/$id/token'
     | '/dashboard/$role/inbox/$threadId'
     | '/dashboard/$role/sessions/$id'
+    | '/dashboard/$role/inbox/'
+    | '/dashboard/$role/sessions/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1302,13 +1303,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRoleVibeRouteImport
       parentRoute: typeof DashboardRoleRoute
     }
-    '/dashboard/$role/sessions': {
-      id: '/dashboard/$role/sessions'
-      path: '/sessions'
-      fullPath: '/dashboard/$role/sessions'
-      preLoaderRoute: typeof DashboardRoleSessionsRouteImport
-      parentRoute: typeof DashboardRoleRoute
-    }
     '/dashboard/$role/reports': {
       id: '/dashboard/$role/reports'
       path: '/reports'
@@ -1349,13 +1343,6 @@ declare module '@tanstack/react-router' {
       path: '/instapay'
       fullPath: '/dashboard/$role/instapay'
       preLoaderRoute: typeof DashboardRoleInstapayRouteImport
-      parentRoute: typeof DashboardRoleRoute
-    }
-    '/dashboard/$role/inbox': {
-      id: '/dashboard/$role/inbox'
-      path: '/inbox'
-      fullPath: '/dashboard/$role/inbox'
-      preLoaderRoute: typeof DashboardRoleInboxRouteImport
       parentRoute: typeof DashboardRoleRoute
     }
     '/dashboard/$role/find': {
@@ -1505,19 +1492,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminApproveTherapistRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/$role/sessions/': {
+      id: '/dashboard/$role/sessions/'
+      path: '/sessions'
+      fullPath: '/dashboard/$role/sessions/'
+      preLoaderRoute: typeof DashboardRoleSessionsIndexRouteImport
+      parentRoute: typeof DashboardRoleRoute
+    }
+    '/dashboard/$role/inbox/': {
+      id: '/dashboard/$role/inbox/'
+      path: '/inbox'
+      fullPath: '/dashboard/$role/inbox/'
+      preLoaderRoute: typeof DashboardRoleInboxIndexRouteImport
+      parentRoute: typeof DashboardRoleRoute
+    }
     '/dashboard/$role/sessions/$id': {
       id: '/dashboard/$role/sessions/$id'
-      path: '/$id'
+      path: '/sessions/$id'
       fullPath: '/dashboard/$role/sessions/$id'
       preLoaderRoute: typeof DashboardRoleSessionsIdRouteImport
-      parentRoute: typeof DashboardRoleSessionsRoute
+      parentRoute: typeof DashboardRoleRoute
     }
     '/dashboard/$role/inbox/$threadId': {
       id: '/dashboard/$role/inbox/$threadId'
-      path: '/$threadId'
+      path: '/inbox/$threadId'
       fullPath: '/dashboard/$role/inbox/$threadId'
       preLoaderRoute: typeof DashboardRoleInboxThreadIdRouteImport
-      parentRoute: typeof DashboardRoleInboxRoute
+      parentRoute: typeof DashboardRoleRoute
     }
     '/api/sessions/$id/token': {
       id: '/api/sessions/$id/token'
@@ -1605,30 +1606,6 @@ const TherapistsRouteWithChildren = TherapistsRoute._addFileChildren(
   TherapistsRouteChildren,
 )
 
-interface DashboardRoleInboxRouteChildren {
-  DashboardRoleInboxThreadIdRoute: typeof DashboardRoleInboxThreadIdRoute
-}
-
-const DashboardRoleInboxRouteChildren: DashboardRoleInboxRouteChildren = {
-  DashboardRoleInboxThreadIdRoute: DashboardRoleInboxThreadIdRoute,
-}
-
-const DashboardRoleInboxRouteWithChildren =
-  DashboardRoleInboxRoute._addFileChildren(DashboardRoleInboxRouteChildren)
-
-interface DashboardRoleSessionsRouteChildren {
-  DashboardRoleSessionsIdRoute: typeof DashboardRoleSessionsIdRoute
-}
-
-const DashboardRoleSessionsRouteChildren: DashboardRoleSessionsRouteChildren = {
-  DashboardRoleSessionsIdRoute: DashboardRoleSessionsIdRoute,
-}
-
-const DashboardRoleSessionsRouteWithChildren =
-  DashboardRoleSessionsRoute._addFileChildren(
-    DashboardRoleSessionsRouteChildren,
-  )
-
 interface DashboardRoleRouteChildren {
   DashboardRoleAchievementsRoute: typeof DashboardRoleAchievementsRoute
   DashboardRoleApprovalsRoute: typeof DashboardRoleApprovalsRoute
@@ -1637,16 +1614,18 @@ interface DashboardRoleRouteChildren {
   DashboardRoleChatRoute: typeof DashboardRoleChatRoute
   DashboardRoleChildrenRoute: typeof DashboardRoleChildrenRoute
   DashboardRoleFindRoute: typeof DashboardRoleFindRoute
-  DashboardRoleInboxRoute: typeof DashboardRoleInboxRouteWithChildren
   DashboardRoleInstapayRoute: typeof DashboardRoleInstapayRoute
   DashboardRoleMoodRoute: typeof DashboardRoleMoodRoute
   DashboardRoleNotificationsRoute: typeof DashboardRoleNotificationsRoute
   DashboardRolePendingRoute: typeof DashboardRolePendingRoute
   DashboardRoleProfileRoute: typeof DashboardRoleProfileRoute
   DashboardRoleReportsRoute: typeof DashboardRoleReportsRoute
-  DashboardRoleSessionsRoute: typeof DashboardRoleSessionsRouteWithChildren
   DashboardRoleVibeRoute: typeof DashboardRoleVibeRoute
   DashboardRoleIndexRoute: typeof DashboardRoleIndexRoute
+  DashboardRoleInboxThreadIdRoute: typeof DashboardRoleInboxThreadIdRoute
+  DashboardRoleSessionsIdRoute: typeof DashboardRoleSessionsIdRoute
+  DashboardRoleInboxIndexRoute: typeof DashboardRoleInboxIndexRoute
+  DashboardRoleSessionsIndexRoute: typeof DashboardRoleSessionsIndexRoute
 }
 
 const DashboardRoleRouteChildren: DashboardRoleRouteChildren = {
@@ -1657,16 +1636,18 @@ const DashboardRoleRouteChildren: DashboardRoleRouteChildren = {
   DashboardRoleChatRoute: DashboardRoleChatRoute,
   DashboardRoleChildrenRoute: DashboardRoleChildrenRoute,
   DashboardRoleFindRoute: DashboardRoleFindRoute,
-  DashboardRoleInboxRoute: DashboardRoleInboxRouteWithChildren,
   DashboardRoleInstapayRoute: DashboardRoleInstapayRoute,
   DashboardRoleMoodRoute: DashboardRoleMoodRoute,
   DashboardRoleNotificationsRoute: DashboardRoleNotificationsRoute,
   DashboardRolePendingRoute: DashboardRolePendingRoute,
   DashboardRoleProfileRoute: DashboardRoleProfileRoute,
   DashboardRoleReportsRoute: DashboardRoleReportsRoute,
-  DashboardRoleSessionsRoute: DashboardRoleSessionsRouteWithChildren,
   DashboardRoleVibeRoute: DashboardRoleVibeRoute,
   DashboardRoleIndexRoute: DashboardRoleIndexRoute,
+  DashboardRoleInboxThreadIdRoute: DashboardRoleInboxThreadIdRoute,
+  DashboardRoleSessionsIdRoute: DashboardRoleSessionsIdRoute,
+  DashboardRoleInboxIndexRoute: DashboardRoleInboxIndexRoute,
+  DashboardRoleSessionsIndexRoute: DashboardRoleSessionsIndexRoute,
 }
 
 const DashboardRoleRouteWithChildren = DashboardRoleRoute._addFileChildren(

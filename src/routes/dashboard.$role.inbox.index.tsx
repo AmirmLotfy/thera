@@ -10,7 +10,7 @@ import { Loader2, MessageSquare } from "lucide-react";
 import * as React from "react";
 import type { TherapistDoc, UserDoc } from "@/lib/types";
 
-export const Route = createFileRoute("/dashboard/$role/inbox")({
+export const Route = createFileRoute("/dashboard/$role/inbox/")({
   head: () => ({ meta: [{ title: "Inbox — Thera" }] }),
   component: () => (
     <RouteGuard requireAuth>
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/dashboard/$role/inbox")({
 function InboxListPage() {
   const { locale } = useI18n();
   const { user, effectiveRole } = useAuth();
-  const { role } = useParams({ from: "/dashboard/$role/inbox" });
+  const { role } = useParams({ from: "/dashboard/$role/inbox/" });
   const queryRole: "patient" | "therapist" = effectiveRole === "therapist" ? "therapist" : "patient";
   const { data: threads = [], loading } = useCareThreadsLive(user?.uid, queryRole);
   const [labels, setLabels] = React.useState<Record<string, string>>({});
